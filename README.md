@@ -1,1 +1,1 @@
-"# cliniq-ai" 
+# AI Features for Graduation Project
