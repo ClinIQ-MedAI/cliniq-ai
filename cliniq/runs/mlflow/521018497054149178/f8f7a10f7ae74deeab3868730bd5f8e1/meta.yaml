@@ -1,0 +1,14 @@
+artifact_uri: /home/moabouag/far/cliniq/runs/mlflow/521018497054149178/f8f7a10f7ae74deeab3868730bd5f8e1/artifacts
+end_time: 1769645043245
+entry_point_name: ''
+experiment_id: '521018497054149178'
+lifecycle_stage: active
+run_id: f8f7a10f7ae74deeab3868730bd5f8e1
+run_name: yolo_v8x_ft_nomosaic_1024
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1769644260049
+status: 3
+tags: []
+user_id: moabouag

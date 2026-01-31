@@ -25,6 +25,64 @@ wrest/data/graz/images/
 wrest/data/graz/labels/
 wrest/data/graz/detection/images/
 wrest/data/graz/detection/labels/
+**/dataset/
+**/dataset_clean/
+**/oral_yolo_dataset/
+**/data/raw/
+**/data/processed/
+
+# YOLO runs/training outputs
+runs/
+**/runs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Legacy/Other
+/AV-Detection
+/Diffusion
+/OralXrays-9
+/annotations
+notes.txt<<<<<<< HEAD
+# Virtual environment
+cliniq_env/
+venv/
+.env/
+env/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Model weights
+*.pt
+*.pth
+*.onnx
+
+# Dataset images (large files)
+wrest/data/graz/images/
+wrest/data/graz/labels/
+wrest/data/graz/detection/images/
+wrest/data/graz/detection/labels/
 
 # YOLO runs/training outputs (except what we want to keep)
 runs/
@@ -43,3 +101,9 @@ Thumbs.db
 
 # Logs
 *.log
+=======
+/AV-Detection
+/Diffusion
+/OralXrays-9
+/annotations
+>>>>>>> 271abfe4 (first commit)
