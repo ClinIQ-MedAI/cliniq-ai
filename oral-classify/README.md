@@ -28,8 +28,8 @@ This feature provides:
 | Caries | 0.99 | 0.98 | 0.99 |
 | Discoloration | 0.99 | 0.99 | 0.99 |
 | Gingivitis | 0.86 | 0.93 | 0.89 |
-| Hypodontia | 1.00 | 0.99 | 0.99 |
-| Ulcer | 1.00 | 1.00 | 1.00 |
+| Hypodontia | 0.99 | 0.99 | 0.99 |
+| Ulcer | 0.99 | 0.99 | 0.99 |
 
 ---
 
