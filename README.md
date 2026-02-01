@@ -7,6 +7,7 @@ Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinic
 | Project | Description | Status |
 |---------|-------------|--------|
 | [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
+| [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
 | **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
 
 ---
@@ -36,6 +37,33 @@ End-to-end pipeline for dental panoramic X-ray analysis:
 ```bash
 cd oral-xray
 conda run -n cliniq python scripts/run_inference.py --image path/to/xray.jpg --visualize
+```
+
+---
+
+## Oral Disease Classification
+
+**Location:** [`oral-classify/`](./oral-classify/)
+
+AI-powered oral disease classification with GradCAM visualization:
+
+- **ConvNeXt-Small** - 94.83% accuracy, 189MB model
+- **GradCAM++** - Visual explanations of predictions
+- **FastAPI Server** - REST API for production deployment
+
+### Classes
+1. Calculus (tartar)
+2. Caries (cavities)
+3. Discoloration
+4. Gingivitis
+5. Hypodontia
+6. Ulcer
+
+### Quick Start
+```bash
+cd oral-classify
+uvicorn api.server:app --host 0.0.0.0 --port 8001
+# Open http://localhost:8001/docs
 ```
 
 ---
