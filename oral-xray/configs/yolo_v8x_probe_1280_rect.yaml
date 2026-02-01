@@ -1,0 +1,40 @@
+experiment:
+  name: yolo_v8x_probe_1280_rect
+  project_dir: Oral-Dental/oral-xray/outputs/experiments
+
+data:
+  yolo_root: Oral-Dental/oral-xray/dataset/processed/yolo_oral
+  use_balanced: false
+
+model:
+  weights: Oral-Dental/oral-xray/outputs/experiments/yolo_v8x_base_1024/weights/best.pt
+
+train:
+  imgsz: 1280
+  epochs: 12
+  batch: 12
+  workers: 8
+  device: "0"
+  patience: 5
+  seed: 42
+  optimizer: AdamW
+  lr0: 0.0003
+  weight_decay: 0.0005
+  cos_lr: true
+  label_smoothing: 0.0
+  cache: ram
+
+augment:
+  mosaic: 0.0
+  close_mosaic: 0
+  degrees: 2.0
+  translate: 0.02
+  scale: 0.10
+  fliplr: 0.10
+  hsv_v: 0.05
+  mixup: 0.0
+  copy_paste: 0.0
+
+reports:
+  pred_samples: 30
+  pred_conf: 0.25

@@ -1,0 +1,26 @@
+# Classification config for dental X-ray crops
+# Recommended model: ConvNeXt-Large (best balance for A6000 GPU)
+
+# Model selection (see src/models/classification.py for all options)
+# TOP TIER: convnext_large, convnext_xlarge, eva02_base, maxvit_base
+# MEDIUM: efficientnetv2_l, swinv2_base, beit_base
+# FAST: efficientnetv2_m, convnext_small
+
+model: convnext_large
+
+# Training parameters
+epochs: 50
+batch_size: 32           # A6000 can handle 64+ for most models
+lr: 0.0001               # Learning rate for full fine-tuning phase
+weight_decay: 0.01
+dropout: 0.3
+patience: 10             # Early stopping patience
+freeze_epochs: 5         # Epochs with frozen backbone (warmup)
+
+# Data
+crops_root: Oral-Dental/oral-xray/dataset/processed/crops_oral
+workers: 8
+
+# Output
+output_dir: Oral-Dental/oral-xray/outputs/classification
+device: "0"

@@ -10,11 +10,10 @@ __pycache__/
 *$py.class
 *.so
 
-# Model weights (except last.pt)
+# Model weights
 *.pt
 *.pth
 *.onnx
-!**/last.pt
 
 # Dataset images (large files)
 wrest/data/graz/images/
