@@ -1,0 +1,17 @@
+path: /N/scratch/moabouag/grazpedwri/dataset_v2
+train: images/train
+val: images/val
+
+# Classes
+names:
+  0: boneanomaly
+  1: bonelesion
+  2: foreignbody
+  3: fracture
+  4: metal
+  5: periostealreaction
+  6: pronatorsign
+  7: softtissue
+  # 8: text (Removed)
+
+nc: 8

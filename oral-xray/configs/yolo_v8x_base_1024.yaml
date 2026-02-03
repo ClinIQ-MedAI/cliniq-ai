@@ -1,0 +1,46 @@
+experiment:
+  name: yolo_v8x_base_1024
+  project_dir: Oral-Dental/oral-xray/outputs/experiments
+
+data:
+  yolo_root: Oral-Dental/oral-xray/dataset/processed/yolo_oral
+  use_balanced: false
+  alpha: 0.5
+  max_mult: 3
+
+model:
+  weights: yolov8x.pt
+
+train:
+  imgsz: 1024
+  epochs: 100
+  batch: 24           # Increased from 20 (13GB GPU headroom available)
+  workers: 8          # Reduced from 16 (diminishing returns, CPU overhead)
+  device: "0"
+  patience: 30
+  seed: 42
+  optimizer: AdamW
+  lr0: 0.002
+  weight_decay: 0.0005
+  cos_lr: true
+  label_smoothing: 0.05
+  save_period: 10
+  cache: disk         # Enable disk caching for faster epoch 2+
+
+augment:
+  degrees: 5.0
+  translate: 0.05
+  scale: 0.20
+  fliplr: 0.20
+  flipud: 0.0
+  hsv_h: 0.0
+  hsv_s: 0.0
+  hsv_v: 0.10
+  mosaic: 0.1
+  close_mosaic: 10
+  mixup: 0.0
+  copy_paste: 0.0
+
+reports:
+  pred_samples: 30
+  pred_conf: 0.25

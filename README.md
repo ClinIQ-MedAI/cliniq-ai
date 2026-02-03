@@ -1,87 +1,89 @@
-# Healthcare Chatbot
+# ClinIQ AI
 
-A web-based healthcare chatbot that helps users with:
-- General health information questions
-- Appointment booking with doctors
-- Doctor availability checking
-- Clinic FAQ and general information
+Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinical diagnostics.
 
-## Features
+## Projects
 
-✅ **Health Information**: Ask about diseases, symptoms, and wellness  
-✅ **Appointment Booking**: Book appointments with available doctors  
-✅ **Doctor Availability**: Check which doctors are available and when  
-✅ **Queue Status**: See how many people are ahead of you  
-✅ **Clinic FAQ**: Get answers about clinic policies and procedures  
-
-## Setup
-
-1. **Install dependencies**:
-```bash
-pip install -r requirements.txt
-```
-
-2. **Run the application**:
-```bash
-python app.py
-```
-
-3. **Open in browser**:
-Navigate to `http://localhost:5000`
-
-## Project Structure
-
-```
-healthcare-chatbot/
-├── app.py                 # Flask application & backend logic
-├── requirements.txt       # Python dependencies
-├── data/
-│   ├── doctors.json      # Doctor information & availability
-│   ├── appointments.json # Booked appointments
-│   └── faq.json          # Frequently asked questions
-├── templates/
-│   └── index.html        # Chat interface
-└── static/
-    ├── style.css         # Chatbot styling
-    └── script.js         # Frontend logic
-```
-
-## How It Works
-
-1. **Query Classification**: The chatbot analyzes user input to determine if it's:
-   - Health question → Uses LLM for general health info
-   - Appointment booking → Opens booking interface
-   - Doctor availability → Shows available slots
-   - FAQ → Provides clinic information
-
-2. **Appointment Booking**: Users can:
-   - Select a doctor
-   - Choose a date
-   - Pick a time slot
-   - See queue position in real-time
-
-3. **Data Persistence**: All appointments are saved to `data/appointments.json`
-
-## Customization
-
-### Add More Doctors
-Edit `data/doctors.json` and add doctor entries with availability schedules.
-
-### Add More FAQ
-Edit `data/faq.json` to add new questions and answers.
-
-### Change the Model
-In `app.py`, modify the `MODEL` variable to use different LLM models (e.g., "DeepSeek-R1", "llama-4-scout").
-
-## Features to Add Later
-
-- Email/SMS notifications for appointments
-- Patient history tracking
-- Doctor reviews and ratings
-- Prescription management
-- Telemedicine integration
-- Multiple language support
+| Project | Description | Status |
+|---------|-------------|--------|
+| [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
+| [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
+| **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
 
 ---
 
-Built with Flask, OpenAI API, and modern web technologies.
+## Oral X-Ray Detection & Classification
+
+**Location:** [`oral-xray/`](./oral-xray/)
+
+End-to-end pipeline for dental panoramic X-ray analysis:
+
+- **YOLO v8x Detection** - 9 dental condition classes, mAP50-95: 0.707
+- **ConvNeXt-Large Classification** - 99.32% accuracy on crop refinement
+- **Production API** - FastAPI server for real-time inference
+
+### Classes Detected
+1. Apical Periodontitis
+2. Decay
+3. Wisdom Tooth
+4. Missing Tooth
+5. Dental Filling
+6. Root Canal Filling
+7. Implant
+8. Porcelain Crown
+9. Ceramic Bridge
+
+### Quick Start
+```bash
+cd oral-xray
+conda run -n cliniq python scripts/run_inference.py --image path/to/xray.jpg --visualize
+```
+
+---
+
+## Oral Disease Classification
+
+**Location:** [`oral-classify/`](./oral-classify/)
+
+AI-powered oral disease classification with GradCAM visualization:
+
+- **ConvNeXt-Small** - 94.83% accuracy, 189MB model
+- **GradCAM++** - Visual explanations of predictions
+- **FastAPI Server** - REST API for production deployment
+
+### Classes
+1. Calculus (tartar)
+2. Caries (cavities)
+3. Discoloration
+4. Gingivitis
+5. Hypodontia
+6. Ulcer
+
+### Quick Start
+```bash
+cd oral-classify
+uvicorn api.server:app --host 0.0.0.0 --port 8001
+# Open http://localhost:8001/docs
+```
+
+---
+
+## Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/ClinIQ-MedAI/cliniq-ai.git
+cd cliniq-ai
+
+# Create conda environment
+conda env create -f oral-xray/environment.yml
+conda activate cliniq
+```
+
+## Team
+
+**ClinIQ-MedAI** - Medical AI Research & Development
+
+## License
+
+Proprietary - All rights reserved.
