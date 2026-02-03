@@ -1,42 +1,40 @@
-# Virtual Environment
-.venv/
+# Virtual environment
+cliniq_env/
 venv/
+.env/
 env/
-ENV/
 
-# Python
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+
+# Model weights
+*.pt
+*.pth
+*.onnx
+
+# Dataset images (large files)
+wrest/data/graz/images/
+wrest/data/graz/labels/
+wrest/data/graz/detection/images/
+wrest/data/graz/detection/labels/
+
+# YOLO runs/training outputs (except what we want to keep)
+runs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Environment variables
-.env
-.env.local
+# Logs
+*.log
