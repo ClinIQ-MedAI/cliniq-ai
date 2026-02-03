@@ -1,6 +1,15 @@
 let doctors = [];
 let selectedDoctor = null;
 
+// Get or generate patient_id for this session
+// In production, this would come from the external auth backend
+let patientId = localStorage.getItem('patient_id');
+if (!patientId) {
+    patientId = 'patient_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('patient_id', patientId);
+}
+console.log('Patient ID:', patientId);
+
 // Load doctors on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadDoctors();
@@ -68,7 +77,8 @@ async function getResponse(userMessage) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                message: userMessage
+                message: userMessage,
+                patient_id: patientId
             })
         });
         
@@ -192,6 +202,7 @@ async function submitBooking(event) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                patient_id: patientId,
                 patient_name: patientName,
                 doctor_id: parseInt(doctorId),
                 date: date,
