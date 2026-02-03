@@ -6,6 +6,7 @@ Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinic
 
 | Project | Description | Status |
 |---------|-------------|--------|
+| [**chatbot-app/**](./chatbot-app/) | Healthcare Chatbot | ✅ Active |
 | [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
 | [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
 | **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
