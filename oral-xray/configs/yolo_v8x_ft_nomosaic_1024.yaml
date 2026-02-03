@@ -1,0 +1,44 @@
+experiment:
+  name: yolo_v8x_ft_nomosaic_1024
+  project_dir: Oral-Dental/oral-xray/outputs/experiments
+
+data:
+  yolo_root: Oral-Dental/oral-xray/dataset/processed/yolo_oral
+  use_balanced: false
+
+model:
+  weights: /home/moabouag/far/cliniq/Oral-Dental/oral-xray/outputs/experiments/yolo_v8x_base_1024/weights/best.pt
+
+train:
+  imgsz: 1024
+  epochs: 45
+  batch: 24
+  workers: 8
+  device: "0"
+  patience: 10
+  seed: 42
+  optimizer: AdamW
+  lr0: 0.0005          # LR أقل (مهم جدًا)
+  weight_decay: 0.0005
+  cos_lr: true
+  label_smoothing: 0.0
+  save_period: 5
+  cache: disk
+
+augment:
+  degrees: 2.0
+  translate: 0.02
+  scale: 0.10
+  fliplr: 0.10
+  flipud: 0.0
+  hsv_h: 0.0
+  hsv_s: 0.0
+  hsv_v: 0.05
+  mosaic: 0.0          # 🔥 قفل mosaic
+  close_mosaic: 0
+  mixup: 0.0
+  copy_paste: 0.0
+
+reports:
+  pred_samples: 30
+  pred_conf: 0.25

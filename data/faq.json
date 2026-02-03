@@ -1,0 +1,34 @@
+[
+  {
+    "question": "How do I book an appointment?",
+    "answer": "You can book an appointment using our chatbot. Simply ask to book an appointment, and the bot will help you select a doctor, date, and time."
+  },
+  {
+    "question": "What are your clinic hours?",
+    "answer": "Our clinic operates from Monday to Friday, 9:00 AM to 5:00 PM. We are closed on weekends and public holidays."
+  },
+  {
+    "question": "Do you accept insurance?",
+    "answer": "Yes, we accept most major insurance plans. Please bring your insurance card to your appointment."
+  },
+  {
+    "question": "How long before I can see a doctor after booking?",
+    "answer": "Most appointments can be scheduled within 1-2 weeks depending on doctor availability."
+  },
+  {
+    "question": "Can I cancel or reschedule my appointment?",
+    "answer": "Yes, you can cancel or reschedule up to 24 hours before your appointment. Contact us through the chatbot."
+  },
+  {
+    "question": "What should I bring to my appointment?",
+    "answer": "Please bring your insurance card, ID, and any relevant medical records or test results."
+  },
+  {
+    "question": "Is my personal information secure?",
+    "answer": "Yes, we use industry-standard encryption to protect all patient information according to HIPAA guidelines."
+  },
+  {
+    "question": "Do you offer telehealth appointments?",
+    "answer": "Yes, we offer virtual consultations. You can request this when booking your appointment."
+  }
+]
