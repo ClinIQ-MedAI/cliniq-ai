@@ -1,0 +1,907 @@
+{
+  "drugs": [
+    {
+      "name_en": "Augmentin",
+      "name_ar": "اوجمنتين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Amoxicillin",
+      "name_ar": "اموكسيسيلين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Azithromycin",
+      "name_ar": "ازيثرومايسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Ciprofloxacin",
+      "name_ar": "سيبروفلوكساسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Cephalexin",
+      "name_ar": "سيفاليكسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Cefixime",
+      "name_ar": "سيفيكسيم",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Ceftriaxone",
+      "name_ar": "سيفترياكسون",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Clarithromycin",
+      "name_ar": "كلاريثرومايسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Doxycycline",
+      "name_ar": "دوكسيسايكلين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Erythromycin",
+      "name_ar": "اريثرومايسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Levofloxacin",
+      "name_ar": "ليفوفلوكساسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Metronidazole",
+      "name_ar": "ميترونيدازول",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Penicillin",
+      "name_ar": "بنسلين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Tobramycin",
+      "name_ar": "توبراميسين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Flucloxacillin",
+      "name_ar": "فلوكلوكساسيلين",
+      "category": "antibiotic"
+    },
+    {
+      "name_en": "Paracetamol",
+      "name_ar": "باراسيتامول",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Panadol",
+      "name_ar": "بانادول",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Acetaminophen",
+      "name_ar": "اسيتامينوفين",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Tramadol",
+      "name_ar": "ترامادول",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Codeine",
+      "name_ar": "كودين",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Morphine",
+      "name_ar": "مورفين",
+      "category": "analgesic"
+    },
+    {
+      "name_en": "Ibuprofen",
+      "name_ar": "ايبوبروفين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Brufen",
+      "name_ar": "بروفين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Aspirin",
+      "name_ar": "اسبرين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Diclofenac",
+      "name_ar": "ديكلوفيناك",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Voltaren",
+      "name_ar": "فولتارين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Naproxen",
+      "name_ar": "نابروكسين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Ketoprofen",
+      "name_ar": "كيتوبروفين",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Celecoxib",
+      "name_ar": "سيليكوكسيب",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Meloxicam",
+      "name_ar": "ميلوكسيكام",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Piroxicam",
+      "name_ar": "بيروكسيكام",
+      "category": "nsaid"
+    },
+    {
+      "name_en": "Omeprazole",
+      "name_ar": "اوميبرازول",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Losec",
+      "name_ar": "لوسيك",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Pantoprazole",
+      "name_ar": "بانتوبرازول",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Esomeprazole",
+      "name_ar": "ايزوميبرازول",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Nexium",
+      "name_ar": "نيكسيوم",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Lansoprazole",
+      "name_ar": "لانسوبرازول",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Ranitidine",
+      "name_ar": "رانيتيدين",
+      "category": "ppi"
+    },
+    {
+      "name_en": "Metformin",
+      "name_ar": "ميتفورمين",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Glucophage",
+      "name_ar": "جلوكوفاج",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Glimepiride",
+      "name_ar": "جليميبيريد",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Amaryl",
+      "name_ar": "اماريل",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Gliclazide",
+      "name_ar": "جليكلازيد",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Sitagliptin",
+      "name_ar": "سيتاجليبتين",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Januvia",
+      "name_ar": "جانوفيا",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Insulin",
+      "name_ar": "انسولين",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Lantus",
+      "name_ar": "لانتوس",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Humalog",
+      "name_ar": "هيومالوج",
+      "category": "diabetes"
+    },
+    {
+      "name_en": "Amlodipine",
+      "name_ar": "امالوديبين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Norvasc",
+      "name_ar": "نورفاسك",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Atenolol",
+      "name_ar": "اتينولول",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Bisoprolol",
+      "name_ar": "بيزوبرولول",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Concor",
+      "name_ar": "كونكور",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Lisinopril",
+      "name_ar": "ليسينوبريل",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Enalapril",
+      "name_ar": "اينالابريل",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Losartan",
+      "name_ar": "لوسارتان",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Valsartan",
+      "name_ar": "فالسارتان",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Furosemide",
+      "name_ar": "فوروسيميد",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Lasix",
+      "name_ar": "لازيكس",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Digoxin",
+      "name_ar": "ديجوكسين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Warfarin",
+      "name_ar": "وارفارين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Clopidogrel",
+      "name_ar": "كلوبيدوجريل",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Plavix",
+      "name_ar": "بلافيكس",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Atorvastatin",
+      "name_ar": "اتورفاستاتين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Lipitor",
+      "name_ar": "ليبيتور",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Rosuvastatin",
+      "name_ar": "روسوفاستاتين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Crestor",
+      "name_ar": "كريستور",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Simvastatin",
+      "name_ar": "سيمفاستاتين",
+      "category": "cardiovascular"
+    },
+    {
+      "name_en": "Cetirizine",
+      "name_ar": "سيتريزين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Zyrtec",
+      "name_ar": "زيرتيك",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Loratadine",
+      "name_ar": "لوراتادين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Claritin",
+      "name_ar": "كلاريتين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Fexofenadine",
+      "name_ar": "فيكسوفينادين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Telfast",
+      "name_ar": "تيلفاست",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Diphenhydramine",
+      "name_ar": "ديفينهيدرامين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Chlorpheniramine",
+      "name_ar": "كلورفينيرامين",
+      "category": "antihistamine"
+    },
+    {
+      "name_en": "Salbutamol",
+      "name_ar": "سالبوتامول",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Ventolin",
+      "name_ar": "فنتولين",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Budesonide",
+      "name_ar": "بوديزونيد",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Fluticasone",
+      "name_ar": "فلوتيكازون",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Montelukast",
+      "name_ar": "مونتيلوكاست",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Singulair",
+      "name_ar": "سينجولير",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Theophylline",
+      "name_ar": "ثيوفيلين",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Aminophylline",
+      "name_ar": "امينوفيلين",
+      "category": "respiratory"
+    },
+    {
+      "name_en": "Sertraline",
+      "name_ar": "سيرترالين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Zoloft",
+      "name_ar": "زولوفت",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Fluoxetine",
+      "name_ar": "فلوكسيتين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Prozac",
+      "name_ar": "بروزاك",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Escitalopram",
+      "name_ar": "ايسيتالوبرام",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Lexapro",
+      "name_ar": "ليكسابرو",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Paroxetine",
+      "name_ar": "باروكسيتين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Venlafaxine",
+      "name_ar": "فينلافاكسين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Alprazolam",
+      "name_ar": "البرازولام",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Xanax",
+      "name_ar": "زاناكس",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Diazepam",
+      "name_ar": "ديازيبام",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Valium",
+      "name_ar": "فاليوم",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Clonazepam",
+      "name_ar": "كلونازيبام",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Quetiapine",
+      "name_ar": "كويتيابين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Risperidone",
+      "name_ar": "ريسبيريدون",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Olanzapine",
+      "name_ar": "اولانزابين",
+      "category": "psychiatric"
+    },
+    {
+      "name_en": "Levothyroxine",
+      "name_ar": "ليفوثيروكسين",
+      "category": "thyroid"
+    },
+    {
+      "name_en": "Eltroxin",
+      "name_ar": "التروكسين",
+      "category": "thyroid"
+    },
+    {
+      "name_en": "Carbimazole",
+      "name_ar": "كاربيمازول",
+      "category": "thyroid"
+    },
+    {
+      "name_en": "Prednisolone",
+      "name_ar": "بريدنيزولون",
+      "category": "corticosteroid"
+    },
+    {
+      "name_en": "Prednisone",
+      "name_ar": "بريدنيزون",
+      "category": "corticosteroid"
+    },
+    {
+      "name_en": "Dexamethasone",
+      "name_ar": "ديكساميثازون",
+      "category": "corticosteroid"
+    },
+    {
+      "name_en": "Hydrocortisone",
+      "name_ar": "هيدروكورتيزون",
+      "category": "corticosteroid"
+    },
+    {
+      "name_en": "Betamethasone",
+      "name_ar": "بيتاميثازون",
+      "category": "corticosteroid"
+    },
+    {
+      "name_en": "Tobradex",
+      "name_ar": "توبراديكس",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Tobramycin",
+      "name_ar": "توبراميسين",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Timolol",
+      "name_ar": "تيمولول",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Latanoprost",
+      "name_ar": "لاتانوبروست",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Xalatan",
+      "name_ar": "زالاتان",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Ofloxacin",
+      "name_ar": "اوفلوكساسين",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Moxifloxacin",
+      "name_ar": "موكسيفلوكساسين",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Vigamox",
+      "name_ar": "فيجاموكس",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Refresh",
+      "name_ar": "ريفريش",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Systane",
+      "name_ar": "سيستين",
+      "category": "ophthalmic"
+    },
+    {
+      "name_en": "Ondansetron",
+      "name_ar": "اوندانسيترون",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Zofran",
+      "name_ar": "زوفران",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Metoclopramide",
+      "name_ar": "ميتوكلوبراميد",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Primperan",
+      "name_ar": "بريمبيران",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Domperidone",
+      "name_ar": "دومبيريدون",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Motilium",
+      "name_ar": "موتيليوم",
+      "category": "antiemetic"
+    },
+    {
+      "name_en": "Gabapentin",
+      "name_ar": "جابابنتين",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Pregabalin",
+      "name_ar": "بريجابالين",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Lyrica",
+      "name_ar": "ليريكا",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Carbamazepine",
+      "name_ar": "كاربامازيبين",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Tegretol",
+      "name_ar": "تيجريتول",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Phenytoin",
+      "name_ar": "فينيتوين",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Valproic Acid",
+      "name_ar": "حمض الفالبرويك",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Depakine",
+      "name_ar": "ديباكين",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Levetiracetam",
+      "name_ar": "ليفيتيراسيتام",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Keppra",
+      "name_ar": "كيبرا",
+      "category": "neurological"
+    },
+    {
+      "name_en": "Acyclovir",
+      "name_ar": "اسيكلوفير",
+      "category": "antiviral"
+    },
+    {
+      "name_en": "Zovirax",
+      "name_ar": "زوفيراكس",
+      "category": "antiviral"
+    },
+    {
+      "name_en": "Oseltamivir",
+      "name_ar": "اوسيلتاميفير",
+      "category": "antiviral"
+    },
+    {
+      "name_en": "Tamiflu",
+      "name_ar": "تاميفلو",
+      "category": "antiviral"
+    },
+    {
+      "name_en": "Fluconazole",
+      "name_ar": "فلوكونازول",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Diflucan",
+      "name_ar": "ديفلوكان",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Itraconazole",
+      "name_ar": "ايتراكونازول",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Clotrimazole",
+      "name_ar": "كلوتريمازول",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Miconazole",
+      "name_ar": "ميكونازول",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Nystatin",
+      "name_ar": "نيستاتين",
+      "category": "antifungal"
+    },
+    {
+      "name_en": "Calcium Carbonate",
+      "name_ar": "كربونات الكالسيوم",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Caltrate",
+      "name_ar": "كالترات",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Vitamin D",
+      "name_ar": "فيتامين د",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Vitamin B12",
+      "name_ar": "فيتامين ب12",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Folic Acid",
+      "name_ar": "حمض الفوليك",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Iron Supplement",
+      "name_ar": "مكمل الحديد",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Ferrous Sulfate",
+      "name_ar": "كبريتات الحديدوز",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Zinc",
+      "name_ar": "زنك",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Omega 3",
+      "name_ar": "اوميجا 3",
+      "category": "supplement"
+    },
+    {
+      "name_en": "Allopurinol",
+      "name_ar": "الوبيورينول",
+      "category": "gout"
+    },
+    {
+      "name_en": "Zyloric",
+      "name_ar": "زيلوريك",
+      "category": "gout"
+    },
+    {
+      "name_en": "Colchicine",
+      "name_ar": "كولشيسين",
+      "category": "gout"
+    },
+    {
+      "name_en": "Sildenafil",
+      "name_ar": "سيلدينافيل",
+      "category": "urology"
+    },
+    {
+      "name_en": "Viagra",
+      "name_ar": "فياجرا",
+      "category": "urology"
+    },
+    {
+      "name_en": "Tadalafil",
+      "name_ar": "تادالافيل",
+      "category": "urology"
+    },
+    {
+      "name_en": "Cialis",
+      "name_ar": "سياليس",
+      "category": "urology"
+    },
+    {
+      "name_en": "Tamsulosin",
+      "name_ar": "تامسولوسين",
+      "category": "urology"
+    },
+    {
+      "name_en": "Flomax",
+      "name_ar": "فلوماكس",
+      "category": "urology"
+    },
+    {
+      "name_en": "Loperamide",
+      "name_ar": "لوبيراميد",
+      "category": "gi"
+    },
+    {
+      "name_en": "Imodium",
+      "name_ar": "ايموديوم",
+      "category": "gi"
+    },
+    {
+      "name_en": "Lactulose",
+      "name_ar": "لاكتولوز",
+      "category": "gi"
+    },
+    {
+      "name_en": "Bisacodyl",
+      "name_ar": "بيساكوديل",
+      "category": "gi"
+    },
+    {
+      "name_en": "Dulcolax",
+      "name_ar": "دولكولاكس",
+      "category": "gi"
+    },
+    {
+      "name_en": "Antacid",
+      "name_ar": "مضاد الحموضة",
+      "category": "gi"
+    },
+    {
+      "name_en": "Maalox",
+      "name_ar": "مالوكس",
+      "category": "gi"
+    },
+    {
+      "name_en": "Gaviscon",
+      "name_ar": "جافيسكون",
+      "category": "gi"
+    }
+  ],
+  "dosages": [
+    "50mg",
+    "100mg",
+    "250mg",
+    "500mg",
+    "1g",
+    "2g",
+    "5mg",
+    "10mg",
+    "20mg",
+    "25mg",
+    "40mg",
+    "80mg",
+    "125mg",
+    "200mg",
+    "400mg",
+    "600mg",
+    "750mg",
+    "800mg",
+    "1000mg"
+  ],
+  "abbreviations": {
+    "tab": "tablet",
+    "tabs": "tablets",
+    "cap": "capsule",
+    "caps": "capsules",
+    "susp": "suspension",
+    "syr": "syrup",
+    "inj": "injection",
+    "amp": "ampoule",
+    "vial": "vial",
+    "gtt": "drops",
+    "oint": "ointment",
+    "cr": "cream",
+    "gel": "gel",
+    "sol": "solution",
+    "supp": "suppository",
+    "inh": "inhaler",
+    "neb": "nebulizer",
+    "patch": "patch",
+    "spray": "spray"
+  },
+  "frequencies": {
+    "OD": "once daily",
+    "BD": "twice daily",
+    "TDS": "three times daily",
+    "QID": "four times daily",
+    "PRN": "as needed",
+    "HS": "at bedtime",
+    "AC": "before meals",
+    "PC": "after meals",
+    "STAT": "immediately"
+  }
+}
