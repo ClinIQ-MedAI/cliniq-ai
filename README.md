@@ -1,116 +1,152 @@
-# ClinIQ - Medical AI Platform
+# ClinIQ AI
 
-AI-powered medical imaging and healthcare solutions.
+Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinical diagnostics.
 
----
+## Projects
 
-## 🏥 Projects
-
-| Project | Description | Model | Performance | API Port |
-|---------|-------------|-------|-------------|----------|
-| **bone-detect** | Pediatric wrist fracture detection | YOLOv11x | 800px, TOP-3 classes | 8001 |
-| **oral-classify** | 6-class oral disease classification | ConvNeXt-Small | **94.8% accuracy** | 8001 |
-| **oral-xray** | Oral disease detection (Caries, Ulcer, Gingivitis) | YOLOv11x | 400 epochs | 8002 |
-| **chatbot-app** | Healthcare AI assistant with Arabic support | Gemini API | Multi-patient memory | 5000 |
-
----
-
-## 📁 Structure
-
-```
-cliniq-ai/
-├── bone-detect/            # Pediatric wrist fracture detection
-│   ├── api/                # FastAPI with LLM + Arabic output
-│   ├── train_top3.py       # YOLOv11x training
-│   └── resume_top3.py      # Resume training
-├── oral-classify/          # ConvNeXt oral disease classification
-│   ├── api/                # FastAPI + GradCAM + LLM + Arabic
-│   └── scripts/            # Training scripts
-├── oral-xray/              # YOLO oral detection
-│   └── api/                # FastAPI with LLM + Arabic output
-└── chatbot-app/            # Healthcare AI chatbot (Arabic support)
-    └── app.py              # Flask + Gemini
-```
+| Project | Description | Status |
+|---------|-------------|--------|
+| [**chatbot-app/**](./chatbot-app/) | Healthcare Chatbot with Arabic Support | ✅ Active |
+| [**bone-detect/**](./bone-detect/) | Pediatric Wrist Fracture Detection | ✅ Training |
+| [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
+| [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
+| **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
 
 ---
 
-## 🔌 API Endpoints
+## Healthcare Chatbot
 
-All APIs support **English and Arabic** output for LLM report generation:
+**Location:** [`chatbot-app/`](./chatbot-app/)
 
-| Endpoint | Language | Returns |
-|----------|----------|---------|
-| `POST /predict` | EN | Full JSON diagnosis |
-| `POST /predict_text` | EN | Plain text report |
-| `POST /predict_for_llm` | EN | LLM-optimized JSON |
-| `POST /predict_text_ar` | **AR** | تقرير التشخيص |
-| `POST /predict_for_llm_ar` | **AR** | JSON للذكاء الاصطناعي |
+AI-powered healthcare assistant with multi-language support:
 
-### Example Arabic Response (`/predict_for_llm_ar`)
-```json
-{
-  "language": "ar",
-  "patient_context": "مريض أطفال يعاني من ألم في المعصم",
-  "ai_findings": {
-    "finding": "كسر",
-    "confidence": "87.5%",
-    "severity": "عالي"
-  },
-  "recommendations": ["عاجل: تم اكتشاف كسر - يوصى باستشارة جراحة العظام فوراً"]
-}
+- **Gemini API** - Advanced conversational AI
+- **Arabic & English** - Full bilingual support
+- **Multi-Patient Memory** - Isolated conversation contexts
+- **Appointment Scheduling** - Doctor directory integration
+
+### Features
+- 🌍 Arabic language support (RTL interface)
+- 👥 Patient isolation (secure contexts)
+- 📅 Appointment scheduling
+- 👨‍⚕️ Doctor directory
+- ❓ FAQ system
+
+### Quick Start
+```bash
+cd chatbot-app
+python app.py
+# Open http://localhost:5000
 ```
 
 ---
 
-## 🚀 Quick Start
+## Bone Fracture Detection
+
+**Location:** [`bone-detect/`](./bone-detect/)
+
+Pediatric wrist trauma detection using GrazPedWri-DX dataset:
+
+- **YOLOv11x** - State-of-the-art object detection
+- **800px images** - High resolution for subtle fractures
+- **Arabic + English APIs** - LLM-ready diagnosis output
+
+### Classes Detected (TOP-3)
+| Class | Description | Priority |
+|-------|-------------|----------|
+| **fracture** | Bone fractures | 🔴 HIGH |
+| **metal** | Surgical hardware/implants | ℹ️ INFO |
+| **periostealreaction** | Bone healing indicators | 🟡 MODERATE |
+
+### API Endpoints
+```
+POST /predict          → JSON diagnosis
+POST /predict_text     → Plain text report
+POST /predict_for_llm  → LLM-optimized output
+POST /predict_text_ar  → تقرير التشخيص بالعربية
+POST /predict_for_llm_ar → JSON للذكاء الاصطناعي
+```
+
+### Quick Start
+```bash
+cd bone-detect
+python api/server.py
+# API at http://localhost:8001
+```
+
+---
+
+## Oral X-Ray Detection & Classification
+
+**Location:** [`oral-xray/`](./oral-xray/)
+
+End-to-end pipeline for dental panoramic X-ray analysis:
+
+- **YOLO v8x Detection** - 9 dental condition classes, mAP50-95: 0.707
+- **ConvNeXt-Large Classification** - 99.32% accuracy on crop refinement
+- **Production API** - FastAPI server for real-time inference
+
+### Classes Detected
+1. Apical Periodontitis
+2. Decay
+3. Wisdom Tooth
+4. Missing Tooth
+5. Dental Filling
+6. Root Canal Filling
+7. Implant
+8. Porcelain Crown
+9. Ceramic Bridge
+
+### Quick Start
+```bash
+cd oral-xray
+conda run -n cliniq python scripts/run_inference.py --image path/to/xray.jpg --visualize
+```
+
+---
+
+## Oral Disease Classification
+
+**Location:** [`oral-classify/`](./oral-classify/)
+
+AI-powered oral disease classification with GradCAM visualization:
+
+- **ConvNeXt-Small** - 94.83% accuracy, 189MB model
+- **GradCAM++** - Visual explanations of predictions
+- **FastAPI Server** - REST API for production deployment
+- **Arabic Support** - Full bilingual diagnosis output
+
+### Classes
+| Class | Precision | Recall | F1 |
+|-------|-----------|--------|-----|
+| Calculus | 0.81 | 0.84 | 0.83 |
+| Caries | 0.99 | 0.98 | 0.99 |
+| Discoloration | 0.99 | 0.99 | 0.99 |
+| Gingivitis | 0.86 | 0.93 | 0.89 |
+| Hypodontia | 1.00 | 0.99 | 0.99 |
+| Ulcer | 1.00 | 1.00 | 1.00 |
+
+### Quick Start
+```bash
+cd oral-classify
+uvicorn api.server:app --host 0.0.0.0 --port 8001
+# Open http://localhost:8001/docs
+```
+
+---
+
+## Setup
 
 ```bash
-# Bone Detection API (port 8001)
-cd bone-detect && python api/server.py
+# Clone the repository
+git clone https://github.com/ClinIQ-MedAI/cliniq-ai.git
+cd cliniq-ai
 
-# Oral Classification API (port 8001)
-cd oral-classify && python -m api.server
-
-# Oral Detection API (port 8002)
-cd oral-xray && python api/server.py
-
-# Healthcare Chatbot (port 5000)
-cd chatbot-app && python app.py
+# Create conda environment
+conda env create -f oral-xray/environment.yml
+conda activate cliniq
 ```
 
----
+## Team
 
-## 📊 Model Performance
-
-### Bone Detection (bone-detect)
-| Class | Status | Description |
-|-------|--------|-------------|
-| **fracture** | Primary | Bone fractures - HIGH priority |
-| **metal** | Info | Surgical hardware/implants |
-| **periostealreaction** | Moderate | Bone healing indicators |
-
-### Oral Classification (oral-classify)
-| Class | Precision | Recall | F1-Score |
-|-------|-----------|--------|----------|
-| Calculus | 0.81 | 0.84 | 0.83 |
-| **Caries** | 0.99 | 0.98 | 0.99 |
-| **Discoloration** | 0.99 | 0.99 | 0.99 |
-| Gingivitis | 0.86 | 0.93 | 0.89 |
-| **Hypodontia** | 1.00 | 0.99 | 0.99 |
-| **Ulcer** | 1.00 | 1.00 | 1.00 |
-
----
-
-## 🤖 Healthcare Chatbot
-
-Features:
-- ✅ Arabic & English support
-- ✅ Multi-patient conversation memory
-- ✅ Patient isolation (secure contexts)
-- ✅ Appointment scheduling
-- ✅ Doctor directory
-- ✅ FAQ system
-
----
-
-**ClinIQ-MedAI - One platform for medical AI! 🏥🤖**
+**ClinIQ-MedAI** - Medical AI Research & Development
