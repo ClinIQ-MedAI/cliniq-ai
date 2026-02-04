@@ -261,6 +261,173 @@ async def predict_with_gradcam_json(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============ LLM-Ready Endpoints ============
+
+# Clinical descriptions for LLM
+CLASS_DESCRIPTIONS = {
+    "Calculus": "dental calculus (tarite) accumulation requiring professional cleaning",
+    "Caries": "dental caries (tooth decay/cavities) requiring restorative treatment",
+    "Discoloration": "tooth discoloration that may indicate underlying dental issues",
+    "Gingivitis": "gingival inflammation indicating early periodontal disease",
+    "Hypodontia": "congenitally missing teeth requiring orthodontic evaluation",
+    "Ulcer": "oral ulcer/lesion requiring clinical evaluation and possible biopsy",
+}
+
+SEVERITY_MAP = {
+    "Calculus": "MODERATE",
+    "Caries": "HIGH",
+    "Discoloration": "LOW",
+    "Gingivitis": "MODERATE",
+    "Hypodontia": "INFO",
+    "Ulcer": "HIGH",
+}
+
+
+@app.post("/predict_for_llm")
+async def predict_for_llm(file: UploadFile = File(...)):
+    """
+    Classify oral image and return LLM-optimized JSON for report generation.
+    
+    Includes clinical context, findings, and recommendations.
+    """
+    if classifier is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        result = classifier.predict(image, top_k=6)
+        
+        predicted = result["predicted_class"]
+        confidence = result["confidence"]
+        
+        # Generate recommendations
+        recommendations = []
+        if predicted == "Caries":
+            recommendations = [
+                "Recommend dental examination for caries assessment",
+                "Consider radiographic evaluation to determine extent",
+                "Treatment options: filling, crown, or root canal depending on severity",
+            ]
+        elif predicted == "Calculus":
+            recommendations = [
+                "Professional dental cleaning (scaling) recommended",
+                "Oral hygiene instruction and follow-up",
+                "Evaluate for underlying periodontal disease",
+            ]
+        elif predicted == "Gingivitis":
+            recommendations = [
+                "Professional dental cleaning recommended",
+                "Improved oral hygiene practices advised",
+                "Follow-up to assess treatment response",
+                "Consider periodontal evaluation if persistent",
+            ]
+        elif predicted == "Ulcer":
+            recommendations = [
+                "Clinical examination to determine ulcer etiology",
+                "Consider biopsy if ulcer persists >2 weeks",
+                "Evaluate for systemic conditions if recurrent",
+                "Symptomatic treatment with topical agents",
+            ]
+        elif predicted == "Hypodontia":
+            recommendations = [
+                "Orthodontic consultation recommended",
+                "Consider prosthetic replacement options",
+                "Genetic counseling may be appropriate",
+            ]
+        elif predicted == "Discoloration":
+            recommendations = [
+                "Determine cause (intrinsic vs extrinsic)",
+                "Dental cleaning for extrinsic stains",
+                "Evaluate for pulp vitality if single tooth involved",
+            ]
+        
+        # Build findings
+        findings = [
+            f"{predicted.upper()} detected with {confidence:.1%} confidence",
+            f"Clinical significance: {CLASS_DESCRIPTIONS.get(predicted, 'Unknown condition')}",
+        ]
+        
+        # Top differentials
+        if len(result["top_k"]) > 1:
+            differentials = [f"{r['class']} ({r['probability']:.1%})" for r in result["top_k"][1:3]]
+            findings.append(f"Differential considerations: {', '.join(differentials)}")
+        
+        return {
+            "patient_context": "Dental/oral examination image analysis",
+            "modality": "Intraoral photograph",
+            "body_part": "Oral cavity",
+            "ai_findings": {
+                "primary_diagnosis": predicted,
+                "confidence": f"{confidence:.1%}",
+                "severity": SEVERITY_MAP.get(predicted, "UNKNOWN"),
+                "clinical_meaning": CLASS_DESCRIPTIONS.get(predicted, "Unknown"),
+            },
+            "differential_diagnoses": [
+                {"condition": r["class"], "probability": f"{r['probability']:.1%}"}
+                for r in result["top_k"][1:4]
+            ],
+            "all_probabilities": result["all_probabilities"],
+            "urgency": "HIGH" if SEVERITY_MAP.get(predicted) == "HIGH" else "ROUTINE",
+            "findings": findings,
+            "recommendations": recommendations,
+            "summary": f"AI analysis detected {predicted.lower()} with {confidence:.1%} confidence. {CLASS_DESCRIPTIONS.get(predicted, '')}",
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict_text")
+async def predict_text(file: UploadFile = File(...)):
+    """
+    Classify oral image and return plain text diagnosis for LLM input.
+    """
+    if classifier is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        result = classifier.predict(image, top_k=6)
+        
+        predicted = result["predicted_class"]
+        confidence = result["confidence"]
+        
+        text = "# ORAL DISEASE AI ANALYSIS REPORT\n\n"
+        text += f"Timestamp: {datetime.now().isoformat()}\n\n"
+        
+        text += "## PRIMARY DIAGNOSIS\n"
+        text += f"Condition: {predicted}\n"
+        text += f"Confidence: {confidence:.1%}\n"
+        text += f"Severity: {SEVERITY_MAP.get(predicted, 'UNKNOWN')}\n"
+        text += f"Description: {CLASS_DESCRIPTIONS.get(predicted, 'Unknown condition')}\n\n"
+        
+        text += "## DIFFERENTIAL DIAGNOSES\n"
+        for i, r in enumerate(result["top_k"][:4], 1):
+            text += f"{i}. {r['class']}: {r['probability']:.1%}\n"
+        
+        text += "\n## ALL PROBABILITY SCORES\n"
+        for cls, prob in sorted(result["all_probabilities"].items(), key=lambda x: -x[1]):
+            bar = "█" * int(prob * 20)
+            text += f"  {cls}: {prob:.1%} {bar}\n"
+        
+        text += "\n---\n"
+        text += "Note: This AI analysis should be reviewed by a qualified dental professional.\n"
+        
+        return {"success": True, "diagnosis_text": text}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -270,3 +437,4 @@ if __name__ == "__main__":
         reload=False,
         workers=1
     )
+
