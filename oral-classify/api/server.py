@@ -428,6 +428,152 @@ async def predict_text(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============ Arabic Endpoints ============
+
+CLASS_NAMES_AR = {
+    "Calculus": "جير الأسنان",
+    "Caries": "تسوس الأسنان",
+    "Discoloration": "تغير لون الأسنان",
+    "Gingivitis": "التهاب اللثة",
+    "Hypodontia": "نقص الأسنان الخلقي",
+    "Ulcer": "قرحة الفم",
+}
+
+CLASS_DESCRIPTIONS_AR = {
+    "Calculus": "تراكم جير الأسنان يتطلب تنظيفاً مهنياً",
+    "Caries": "تسوس الأسنان يتطلب علاجاً ترميمياً",
+    "Discoloration": "تغير لون الأسنان قد يشير إلى مشاكل أسنان كامنة",
+    "Gingivitis": "التهاب اللثة يشير إلى مرض اللثة المبكر",
+    "Hypodontia": "غياب خلقي للأسنان يتطلب تقييم تقويم الأسنان",
+    "Ulcer": "قرحة الفم تتطلب تقييماً سريرياً وربما خزعة",
+}
+
+SEVERITY_AR = {
+    "HIGH": "عالي",
+    "MODERATE": "متوسط",
+    "LOW": "منخفض",
+    "INFO": "معلومات",
+}
+
+
+@app.post("/predict_text_ar")
+async def predict_text_arabic(file: UploadFile = File(...)):
+    """
+    تقرير التشخيص بالعربية
+    Arabic diagnosis report.
+    """
+    if classifier is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        result = classifier.predict(image, top_k=6)
+        
+        predicted = result["predicted_class"]
+        confidence = result["confidence"]
+        ar_name = CLASS_NAMES_AR.get(predicted, predicted)
+        
+        text = "# تقرير تحليل أمراض الفم\n\n"
+        text += f"التاريخ: {datetime.now().isoformat()}\n\n"
+        
+        text += "## التشخيص الرئيسي\n"
+        text += f"الحالة: {ar_name}\n"
+        text += f"الثقة: {confidence:.1%}\n"
+        text += f"الخطورة: {SEVERITY_AR.get(SEVERITY_MAP.get(predicted, 'UNKNOWN'), 'غير معروف')}\n"
+        text += f"الوصف: {CLASS_DESCRIPTIONS_AR.get(predicted, 'حالة غير معروفة')}\n\n"
+        
+        text += "## التشخيصات التفاضلية\n"
+        for i, r in enumerate(result["top_k"][:4], 1):
+            ar_cls = CLASS_NAMES_AR.get(r["class"], r["class"])
+            text += f"{i}. {ar_cls}: {r['probability']:.1%}\n"
+        
+        text += "\n---\n"
+        text += "ملاحظة: يجب مراجعة هذا التحليل من قبل طبيب أسنان مؤهل.\n"
+        
+        return {"success": True, "diagnosis_text": text, "language": "ar"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/predict_for_llm_ar")
+async def predict_for_llm_arabic(file: UploadFile = File(...)):
+    """
+    نتائج التصنيف بصيغة JSON للذكاء الاصطناعي
+    Arabic LLM-optimized JSON.
+    """
+    if classifier is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+        result = classifier.predict(image, top_k=6)
+        
+        predicted = result["predicted_class"]
+        confidence = result["confidence"]
+        
+        # Arabic recommendations
+        recommendations_ar = {
+            "Caries": [
+                "يوصى بفحص تسوس الأسنان",
+                "فكر في التقييم الإشعاعي لتحديد المدى",
+                "خيارات العلاج: حشو، تاج، أو قناة الجذر حسب الشدة",
+            ],
+            "Calculus": [
+                "يوصى بتنظيف الأسنان المهني",
+                "تعليمات نظافة الفم والمتابعة",
+            ],
+            "Gingivitis": [
+                "يوصى بتنظيف الأسنان المهني",
+                "نصح بتحسين ممارسات نظافة الفم",
+                "المتابعة لتقييم استجابة العلاج",
+            ],
+            "Ulcer": [
+                "الفحص السريري لتحديد سبب القرحة",
+                "فكر في الخزعة إذا استمرت القرحة أكثر من أسبوعين",
+            ],
+            "Hypodontia": [
+                "يوصى باستشارة تقويم الأسنان",
+                "فكر في خيارات الاستبدال التعويضي",
+            ],
+            "Discoloration": [
+                "تحديد السبب (داخلي أو خارجي)",
+                "تنظيف الأسنان للبقع الخارجية",
+            ],
+        }
+        
+        return {
+            "language": "ar",
+            "patient_context": "تحليل صورة فحص الأسنان/الفم",
+            "modality": "صورة داخل الفم",
+            "body_part": "تجويف الفم",
+            "ai_findings": {
+                "primary_diagnosis": CLASS_NAMES_AR.get(predicted, predicted),
+                "primary_diagnosis_en": predicted,
+                "confidence": f"{confidence:.1%}",
+                "severity": SEVERITY_AR.get(SEVERITY_MAP.get(predicted, "UNKNOWN"), "غير معروف"),
+                "clinical_meaning": CLASS_DESCRIPTIONS_AR.get(predicted, "غير معروف"),
+            },
+            "differential_diagnoses": [
+                {
+                    "condition": CLASS_NAMES_AR.get(r["class"], r["class"]),
+                    "condition_en": r["class"],
+                    "probability": f"{r['probability']:.1%}"
+                }
+                for r in result["top_k"][1:4]
+            ],
+            "urgency": "عالي" if SEVERITY_MAP.get(predicted) == "HIGH" else "روتيني",
+            "recommendations": recommendations_ar.get(predicted, ["يوصى باستشارة طبيب الأسنان"]),
+            "summary": f"اكتشف التحليل {CLASS_NAMES_AR.get(predicted, predicted)} بثقة {confidence:.1%}",
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -437,4 +583,3 @@ if __name__ == "__main__":
         reload=False,
         workers=1
     )
-

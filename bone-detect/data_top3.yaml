@@ -1,0 +1,18 @@
+# GrazPedWri-DX Dataset - YOLO Format
+# TOP 3 PERFORMING CLASSES ONLY
+
+path: /home/moabouag/far/cliniq/Bone-Xray/bone-detect/dataset_top3
+train: train/images
+val: val/images
+
+# Only top 3 performing classes:
+# - fracture: AP@0.5 = 0.918 (18,090 boxes)
+# - metal: AP@0.5 = 0.642 (818 boxes)
+# - periostealreaction: AP@0.5 = 0.670 (3,453 boxes)
+
+names:
+  0: fracture
+  1: metal
+  2: periostealreaction
+
+nc: 3
