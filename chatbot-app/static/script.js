@@ -1,5 +1,6 @@
 let doctors = [];
 let selectedDoctor = null;
+let isWaitingForResponse = false; // Track if waiting for bot response
 
 // Get or generate patient_id for this session
 // In production, this would come from the external auth backend
@@ -38,8 +39,32 @@ async function loadDoctors() {
     }
 }
 
+function setLoadingState(isLoading) {
+    isWaitingForResponse = isLoading;
+    const input = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    
+    if (isLoading) {
+        input.disabled = true;
+        sendButton.disabled = true;
+        sendButton.textContent = '⏳';
+        sendButton.style.opacity = '0.6';
+        input.placeholder = 'انتظر الرد... / Waiting for response...';
+    } else {
+        input.disabled = false;
+        sendButton.disabled = false;
+        sendButton.textContent = '➤';
+        sendButton.style.opacity = '1';
+        input.placeholder = 'اكتب رسالتك هنا... / Type your message...';
+        input.focus();
+    }
+}
+
 function sendMessage(event) {
     event.preventDefault();
+    
+    // Prevent sending while waiting for response
+    if (isWaitingForResponse) return;
     
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
@@ -70,6 +95,9 @@ function addMessage(text, sender) {
 }
 
 async function getResponse(userMessage) {
+    // Set loading state
+    setLoadingState(true);
+    
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -98,10 +126,14 @@ async function getResponse(userMessage) {
     } catch (error) {
         console.error('Error:', error);
         addMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
+    } finally {
+        // Always reset loading state
+        setLoadingState(false);
     }
 }
 
 function quickAction(message) {
+    if (isWaitingForResponse) return; // Prevent quick actions while waiting
     const input = document.getElementById('messageInput');
     input.value = message;
     sendMessage(new Event('submit'));

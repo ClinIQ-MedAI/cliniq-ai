@@ -161,8 +161,8 @@ def get_llm_response(prompt: str, system_message: str = None, history: list = No
     
     messages.append({"role": "user", "content": prompt})
     
-    # Retry up to 4 times on empty response
-    max_retries = 4
+    # Retry up to 6 times on empty response (API sometimes returns empty)
+    max_retries = 6
     
     for attempt in range(max_retries):
         try:
@@ -254,10 +254,13 @@ def handle_health_question(user_message: str, history: list = None):
 RESPONSE FORMAT:
 - Respond in the SAME LANGUAGE as the user (Arabic or English).
 - First, give a BRIEF answer (2-3 sentences max) that directly addresses the question.
-- Then ask if they want more details.
-  - In English: "Would you like more details about this?"
-  - In Arabic: "هل تود معرفة المزيد من التفاصيل حول هذا الموضوع؟"
-- If the user says yes, wants more info, or asks for details, THEN provide a comprehensive answer.
+- Then suggest a RELEVANT follow-up question about the topic (not a fixed question).
+  - The follow-up should be specific to what was discussed.
+  - Examples:
+    - If discussing weight loss drinks: "هل تريد معرفة أفضل الأوقات لتناول هذه المشروبات؟" or "Would you like to know the best times to drink these?"
+    - If discussing headaches: "هل تعاني من أي أعراض أخرى مصاحبة؟" or "Do you have any other accompanying symptoms?"
+    - If discussing diabetes: "هل تريد معرفة الأطعمة التي يجب تجنبها؟" or "Would you like to know which foods to avoid?"
+- If the user wants more info or says yes, THEN provide a comprehensive answer.
 - If they ask a new question, give a brief answer to that instead.
 
 IMPORTANT:
@@ -266,7 +269,8 @@ IMPORTANT:
 - Use numbered lists (1., 2., 3., etc) for symptoms/steps in detailed answers.
 - Put each numbered item on a separate line.
 - Avoid markdown formatting like **, -, or | characters. Use plain text only.
-- You can reference previous messages in our conversation."""
+- You can reference previous messages in our conversation.
+- DO NOT use the same follow-up question every time - make it relevant to the topic!"""
     
     response = get_llm_response(user_message, system_message, history)
     return response
