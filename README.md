@@ -149,6 +149,7 @@ Robust multi-label classification for 14 common thoracic diseases:
 - **Focal Loss** - Handles severe class imbalance (e.g., Hernia vs No Finding)
 - **Grad-CAM++** - Visual explainability for False Positives/Negatives
 - **Patient-Level Split** - Prevents data leakage
+- **[Download Best Model Weights](https://drive.google.com/file/d/1pNuJt5Jm_V5X4-PoGTZsV1Bq70oWnAmM/view?usp=sharing)** - Pretrained ConvNeXt Checkpoint (3GB)
 
 ### Diseases Detected
 Atelectasis, Cardiomegaly, Consolidation, Edema, Effusion, Emphysema, Fibrosis, Hernia, Infiltration, Mass, Nodule, Pleural_Thickening, Pneumonia, Pneumothorax.
