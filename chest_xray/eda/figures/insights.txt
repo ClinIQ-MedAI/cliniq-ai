@@ -1,0 +1,43 @@
+
+📌 KEY INSIGHTS:
+
+1. SEVERE CLASS IMBALANCE
+   - "No Finding" dominates with 53.8% of images
+   - Hernia is extremely rare (0.2%, only 227 cases)
+   - Imbalance ratio: ~266:1 between largest and smallest class
+   → Recommendation: Use weighted loss, oversampling, or focal loss
+
+2. MULTI-LABEL NATURE
+   - 18.5% of images have multiple diseases
+   - Up to 9 diseases can co-occur in single image
+   - Infiltration frequently co-occurs with other diseases
+   → Recommendation: Use multi-label BCE loss, not softmax
+
+3. DISEASE CO-OCCURRENCE PATTERNS
+   - Infiltration + Effusion: Most common combination
+   - Atelectasis often appears with Effusion
+   - Emphysema + Pneumothorax show high co-occurrence
+   → Insight: Consider disease relationships in model design
+
+4. DEMOGRAPHIC PATTERNS
+   - Slight male predominance (56.5%)
+   - Mean age ~47 years, mostly middle-aged adults
+   - Some diseases show clear gender differences
+   → Consideration: Demographics could be useful features
+
+5. LIMITED LOCALIZATION DATA
+   - Only 984 bounding boxes (<1% coverage)
+   - Only 8 disease classes have annotations
+   → Conclusion: Not suitable for object detection (YOLO)
+
+6. TRAIN/TEST SPLIT
+   - 77% train, 23% test (pre-defined)
+   - Similar class distributions in both splits
+   → Use provided split for fair comparison with literature
+
+🎯 RECOMMENDED APPROACH:
+   - Model: DenseNet-121 or ConvNeXt
+   - Loss: Weighted BCE or Focal Loss
+   - Output: Sigmoid (not softmax) for multi-label
+   - Metric: AUC-ROC (industry standard for this dataset)
+   - Handle imbalance: Class weights + data augmentation
