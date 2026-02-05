@@ -114,5 +114,3 @@ We use **Grad-CAM++** to visualize model attention.
     - **False Negative**: If heatmap misses the lesion, it may be a resolution or contrast issue.
 
 ---
-
-*Author: @Moabouag*
