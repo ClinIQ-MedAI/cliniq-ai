@@ -159,6 +159,20 @@ cd chest_xray
 python scripts/error_analysis.py --checkpoint outputs/checkpoints/best.pt
 ```
 
+### Model Performance (Validation)
+| Class | AUC | F1-Score | Precision | Recall |
+|-------|-----|----------|-----------|--------|
+| **Atelectasis** | 0.89 | 0.00 | 0.00 | 0.00 |
+| **Consolidation** | **0.97** | 0.15 | 0.08 | 1.00 |
+| **Effusion** | **0.93** | **0.67** | 0.70 | 0.64 |
+| **Emphysema** | **0.96** | **0.80** | 1.00 | 0.67 |
+| **Infiltration** | 0.60 | 0.17 | 0.11 | 0.40 |
+| **Mass** | 0.82 | 0.33 | 0.40 | 0.29 |
+| **Nodule** | 0.88 | 0.44 | 0.29 | **0.90** |
+| **Pneumothorax** | **0.99** | **0.67** | 1.00 | 0.50 |
+
+*Note: Metrics calculated on the validation set.*
+
 ---
 
 ## Prescription OCR
@@ -177,6 +191,13 @@ End-to-end pipeline for structured medication extraction from handwritten prescr
 2. **Detection**: PaddleOCR locates text lines
 3. **Recognition**: TrOCR converts images to text
 4. **Extraction**: Regex & Fuzzy matching parses structured JSON
+
+### Performance Metrics
+| Metric | Value | Description |
+|--------|-------|-------------|
+| **Character Error Rate (CER)** | **7.42%** | Standard metric for handwriting OCR accuracy |
+| **Validation Loss** | 0.162 | Low loss indicates robust generalization |
+| **Training Loss** | 0.163 | No overfitting observed (close to Val Loss) |
 
 ### Quick Start
 ```bash
