@@ -10,6 +10,8 @@ Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinic
 | [**bone-detect/**](./bone-detect/) | Pediatric Wrist Fracture Detection | ✅ Production |
 | [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
 | [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
+| [**chest_xray/**](./chest_xray/) | Chest X-ray Multi-Label Classification | ✅ Production |
+| [**prescription_ocr/**](./prescription_ocr/) | Prescription Handwriting OCR | ✅ Production |
 | **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
 
 ---
@@ -133,6 +135,53 @@ AI-powered oral disease classification with GradCAM visualization:
 cd oral-classify
 uvicorn api.server:app --host 0.0.0.0 --port 8001
 # Open http://localhost:8001/docs
+```
+
+---
+
+## Chest X-ray Multi-Label Classification
+
+**Location:** [`chest_xray/`](./chest_xray/)
+
+Robust multi-label classification for 14 common thoracic diseases:
+
+- **ConvNeXt-Large** - State-of-the-art backbone pretrained on ImageNet
+- **Focal Loss** - Handles severe class imbalance (e.g., Hernia vs No Finding)
+- **Grad-CAM++** - Visual explainability for False Positives/Negatives
+- **Patient-Level Split** - Prevents data leakage
+
+### Diseases Detected
+Atelectasis, Cardiomegaly, Consolidation, Edema, Effusion, Emphysema, Fibrosis, Hernia, Infiltration, Mass, Nodule, Pleural_Thickening, Pneumonia, Pneumothorax.
+
+### Quick Start
+```bash
+cd chest_xray
+python scripts/error_analysis.py --checkpoint outputs/checkpoints/best.pt
+```
+
+---
+
+## Prescription OCR
+
+**Location:** [`prescription_ocr/`](./prescription_ocr/)
+
+End-to-end pipeline for structured medication extraction from handwritten prescriptions:
+
+- **State-of-the-art Accuracy** - **7.42% CER** (Character Error Rate) on medical handwriting
+- **TrOCR** - Fine-tuned Transformer-based recognition
+- **PaddleOCR** - Robust text detection in complex layouts
+- **NLP Engine** - Structured extraction of Dosage, Frequency, and Duration
+
+### Pipeline
+1. **Preprocessing**: CLAHE & Bilateral filtering
+2. **Detection**: PaddleOCR locates text lines
+3. **Recognition**: TrOCR converts images to text
+4. **Extraction**: Regex & Fuzzy matching parses structured JSON
+
+### Quick Start
+```bash
+cd prescription_ocr
+python main.py --image data/sample.jpg
 ```
 
 ---
