@@ -1,9 +1,9 @@
 let doctors = [];
 let selectedDoctor = null;
-let isWaitingForResponse = false; // Track if waiting for bot response
+let isWaitingForResponse = false;
+let selectedFile = null;
 
 // Get or generate patient_id for this session
-// In production, this would come from the external auth backend
 let patientId = localStorage.getItem('patient_id');
 if (!patientId) {
     patientId = 'patient_' + Math.random().toString(36).substr(2, 9);
@@ -25,9 +25,8 @@ async function loadDoctors() {
         const response = await fetch('/api/doctors');
         doctors = await response.json();
         
-        // Populate doctor select in modal
         const doctorSelect = document.getElementById('doctorSelect');
-        doctorSelect.innerHTML = '<option value="">-- Choose a doctor --</option>';
+        doctorSelect.innerHTML = '<option value="">-- اختر طبيب --</option>';
         doctors.forEach(doctor => {
             const option = document.createElement('option');
             option.value = doctor.id;
@@ -39,20 +38,23 @@ async function loadDoctors() {
     }
 }
 
-function setLoadingState(isLoading) {
+function setLoadingState(isLoading, message = null) {
     isWaitingForResponse = isLoading;
     const input = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
+    const fileInput = document.getElementById('fileInput');
     
     if (isLoading) {
         input.disabled = true;
         sendButton.disabled = true;
+        fileInput.disabled = true;
         sendButton.textContent = '⏳';
         sendButton.style.opacity = '0.6';
-        input.placeholder = 'انتظر الرد... / Waiting for response...';
+        input.placeholder = message || 'جاري التحليل... / Analyzing...';
     } else {
         input.disabled = false;
         sendButton.disabled = false;
+        fileInput.disabled = false;
         sendButton.textContent = '➤';
         sendButton.style.opacity = '1';
         input.placeholder = 'اكتب رسالتك هنا... / Type your message...';
@@ -60,22 +62,115 @@ function setLoadingState(isLoading) {
     }
 }
 
+// ==================== FILE UPLOAD FUNCTIONS ====================
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    selectedFile = file;
+    const preview = document.getElementById('uploadPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const pdfPreview = document.getElementById('pdfPreview');
+    const fileName = document.getElementById('fileName');
+    const imageTypeSelector = document.getElementById('imageTypeSelector');
+    
+    fileName.textContent = file.name;
+    preview.classList.remove('hidden');
+    
+    if (file.type.startsWith('image/')) {
+        // Show image preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+        pdfPreview.classList.add('hidden');
+        imageTypeSelector.classList.remove('hidden');
+    } else if (file.type === 'application/pdf') {
+        // Show PDF icon
+        imagePreview.classList.add('hidden');
+        pdfPreview.classList.remove('hidden');
+        pdfPreview.textContent = `📄 ${file.name}`;
+        imageTypeSelector.classList.add('hidden');
+    }
+}
+
+function clearUpload() {
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('uploadPreview').classList.add('hidden');
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('pdfPreview').classList.add('hidden');
+}
+
+async function uploadFile() {
+    if (!selectedFile) return null;
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('patient_id', patientId);
+    
+    // Get selected image type (dental or bone)
+    const imageTypeInput = document.querySelector('input[name="imageType"]:checked');
+    const imageType = imageTypeInput ? imageTypeInput.value : 'dental';
+    formData.append('image_type', imageType);
+    
+    // Show uploading message
+    const fileType = selectedFile.type.startsWith('image/') ? 
+        (imageType === 'bone' ? '🦴 صورة أشعة عظام' : '🦷 صورة أشعة أسنان') : 
+        '📄 ملف PDF';
+    addMessage(`[تم رفع ${fileType}]`, 'user');
+    
+    setLoadingState(true, 'جاري تحليل الملف...');
+    
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            addMessage(data.report, 'bot');
+        } else {
+            addMessage(`خطأ: ${data.error}`, 'bot');
+        }
+        
+        clearUpload();
+        return data;
+    } catch (error) {
+        console.error('Upload error:', error);
+        addMessage('حدث خطأ أثناء رفع الملف. حاول مرة أخرى.', 'bot');
+        return null;
+    } finally {
+        setLoadingState(false);
+    }
+}
+
+// ==================== MESSAGE FUNCTIONS ====================
+
 function sendMessage(event) {
     event.preventDefault();
     
-    // Prevent sending while waiting for response
     if (isWaitingForResponse) return;
+    
+    // Check if there's a file to upload
+    if (selectedFile) {
+        uploadFile();
+        return;
+    }
     
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     
     if (!message) return;
     
-    // Display user message
     addMessage(message, 'user');
     input.value = '';
     
-    // Get bot response
     getResponse(message);
 }
 
@@ -85,17 +180,15 @@ function addMessage(text, sender) {
     messageDiv.className = `message ${sender}-message`;
     
     const p = document.createElement('p');
-    p.textContent = text;
+    // Preserve line breaks
+    p.innerHTML = text.replace(/\n/g, '<br>');
     messageDiv.appendChild(p);
     
     chatMessages.appendChild(messageDiv);
-    
-    // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function getResponse(userMessage) {
-    // Set loading state
     setLoadingState(true);
     
     try {
@@ -111,42 +204,36 @@ async function getResponse(userMessage) {
         });
         
         const data = await response.json();
-        const botResponse = data.response;
-        const queryType = data.query_type;
+        addMessage(data.response, 'bot');
         
-        // Display bot response
-        addMessage(botResponse, 'bot');
-        
-        // If booking was requested, show booking modal
-        if (queryType === 'appointment') {
+        if (data.query_type === 'appointment') {
             setTimeout(() => {
                 openBookingModal();
             }, 500);
         }
     } catch (error) {
         console.error('Error:', error);
-        addMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
+        addMessage('عذراً، حدث خطأ. حاول مرة أخرى.', 'bot');
     } finally {
-        // Always reset loading state
         setLoadingState(false);
     }
 }
 
 function quickAction(message) {
-    if (isWaitingForResponse) return; // Prevent quick actions while waiting
+    if (isWaitingForResponse) return;
     const input = document.getElementById('messageInput');
     input.value = message;
     sendMessage(new Event('submit'));
 }
 
+// ==================== BOOKING FUNCTIONS ====================
+
 function openBookingModal() {
-    const modal = document.getElementById('bookingModal');
-    modal.classList.remove('hidden');
+    document.getElementById('bookingModal').classList.remove('hidden');
 }
 
 function closeBookingModal() {
-    const modal = document.getElementById('bookingModal');
-    modal.classList.add('hidden');
+    document.getElementById('bookingModal').classList.add('hidden');
 }
 
 function updateAvailability() {
@@ -154,8 +241,8 @@ function updateAvailability() {
     const daySelect = document.getElementById('daySelect');
     const timeSelect = document.getElementById('timeSelect');
     
-    timeSelect.innerHTML = '<option value="">-- Choose a time --</option>';
-    daySelect.innerHTML = '<option value="">-- Choose a day --</option>';
+    timeSelect.innerHTML = '<option value="">-- اختر وقت --</option>';
+    daySelect.innerHTML = '<option value="">-- اختر يوم --</option>';
     
     if (!doctorId) return;
     
@@ -176,7 +263,7 @@ function updateTimeSlots() {
     const day = document.getElementById('daySelect').value;
     const timeSelect = document.getElementById('timeSelect');
     
-    timeSelect.innerHTML = '<option value="">-- Choose a time --</option>';
+    timeSelect.innerHTML = '<option value="">-- اختر وقت --</option>';
     
     if (!day || !selectedDoctor) return;
     
@@ -207,7 +294,7 @@ async function checkQueue() {
         const data = await response.json();
         
         const queueText = document.getElementById('queueText');
-        queueText.textContent = `Position in queue: ${data.queue_position} (${data.people_before_you} people before you)`;
+        queueText.textContent = `ترتيبك في القائمة: ${data.queue_position} (${data.people_before_you} أشخاص قبلك)`;
         queueInfo.classList.remove('hidden');
     } catch (error) {
         console.error('Error checking queue:', error);
@@ -223,7 +310,7 @@ async function submitBooking(event) {
     const time = document.getElementById('timeSelect').value;
     
     if (!patientName || !doctorId || !date || !time) {
-        alert('Please fill in all fields');
+        alert('يرجى ملء جميع الحقول');
         return;
     }
     
@@ -246,24 +333,23 @@ async function submitBooking(event) {
         
         if (data.success) {
             const doctor = doctors.find(d => d.id == doctorId);
-            const confirmationMsg = `Great! Your appointment has been booked!\n\nDetails:\nDoctor: ${doctor.name}\nDate: ${date}\nTime: ${time}\nPatient: ${patientName}\n\nWe look forward to seeing you!`;
+            const confirmationMsg = `✅ تم حجز موعدك بنجاح!\n\nالتفاصيل:\nالطبيب: ${doctor.name}\nاليوم: ${date}\nالوقت: ${time}\nالاسم: ${patientName}\n\nنتطلع لرؤيتك!`;
             
             addMessage(confirmationMsg, 'bot');
             closeBookingModal();
             
-            // Reset form
             document.getElementById('bookingForm').reset();
             document.getElementById('queueInfo').classList.add('hidden');
         } else {
-            alert('Error booking appointment. Please try again.');
+            alert('حدث خطأ في حجز الموعد. حاول مرة أخرى.');
         }
     } catch (error) {
         console.error('Error booking appointment:', error);
-        alert('Error booking appointment. Please try again.');
+        alert('حدث خطأ في حجز الموعد. حاول مرة أخرى.');
     }
 }
 
-// Close modal when clicking outside of it
+// Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('bookingModal');
     if (event.target == modal) {

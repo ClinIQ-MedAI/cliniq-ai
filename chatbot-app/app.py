@@ -1,17 +1,35 @@
 #!/usr/bin/env python3
 """
 Healthcare Chatbot Flask Application
-Handles appointment booking, doctor availability, and general health questions.
+Handles appointment booking, doctor availability, general health questions,
+and medical image/PDF analysis.
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 import json
 import os
+import io
+import base64
 from datetime import datetime
 from pathlib import Path
 import requests
 from dotenv import load_dotenv
 import time
+
+# Optional imports for file processing
+try:
+    import pdfplumber
+    PDF_SUPPORT = True
+except ImportError:
+    PDF_SUPPORT = False
+    print("⚠️ pdfplumber not installed - PDF support disabled")
+
+try:
+    from PIL import Image
+    IMAGE_SUPPORT = True
+except ImportError:
+    IMAGE_SUPPORT = False
+    print("⚠️ Pillow not installed - Image support disabled")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,9 +39,18 @@ API_KEY = os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://llm.jetstream-cloud.org/api/")
 MODEL = os.getenv("MODEL", "gpt-oss-120b")
 
+# Medical API endpoints
+BONE_DETECT_API = "http://127.0.0.1:8001"
+ORAL_CLASSIFY_API = "http://127.0.0.1:8002"
+
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Allowed file extensions
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+ALLOWED_PDF_EXTENSIONS = {'pdf'}
 
 # Conversation history storage per patient_id
 # Format: {patient_id: [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
@@ -95,35 +122,36 @@ def clean_markdown(text: str):
 
 def make_api_request_with_retry(payload, headers, max_retries=3, initial_wait=1):
     """Make API request with automatic retry on failure."""
+    is_stream = payload.get('stream', False)
+    
     for attempt in range(max_retries):
         try:
             response = requests.post(
                 f"{API_BASE_URL}chat/completions",
                 json=payload,
                 headers=headers,
-                timeout=30
+                timeout=30,
+                stream=is_stream
             )
             
-            # Check if response has content before returning
             if response.status_code == 200:
-                try:
-                    data = response.json()
-                    # Validate that response actually has content
-                    if data.get("choices") and len(data["choices"]) > 0:
-                        message = data["choices"][0].get("message", {})
-                        if message.get("content"):
-                            return response  # Valid response with content
-                except:
-                    pass
-                
-                # If we got here, response was 200 but had no valid content
-                if attempt < max_retries - 1:
-                    wait_time = initial_wait * (2 ** attempt)
-                    print(f"⚠️ Empty response (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                    continue
+                return response
             
-            return response
+            # If not 200, try to get error message
+            error_msg = f"API Error {response.status_code}"
+            try:
+                error_msg += f": {response.text[:200]}"
+            except:
+                pass
+                
+            print(f"⚠️ {error_msg} (attempt {attempt + 1}/{max_retries})")
+            
+            if attempt < max_retries - 1:
+                wait_time = initial_wait * (2 ** attempt)
+                time.sleep(wait_time)
+                continue
+            
+            return None
             
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
             if attempt < max_retries - 1:
@@ -131,102 +159,77 @@ def make_api_request_with_retry(payload, headers, max_retries=3, initial_wait=1)
                 print(f"⚠️ Request failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
                 time.sleep(wait_time)
             else:
-                raise
+                return None
     
     return None
 
 
 def get_llm_response(prompt: str, system_message: str = None, history: list = None):
-    """Get response from LLM API using direct HTTP requests.
-    
-    Args:
-        prompt: The user's message
-        system_message: Optional system message for context
-        history: Optional list of previous messages for conversation memory
-    """
+    """Get response from LLM API using direct HTTP requests (Streaming)."""
     if not LLM_AVAILABLE:
-        # Return a default response for demonstration
-        if "symptom" in prompt.lower() or "disease" in prompt.lower():
-            return "I'm temporarily unable to access the LLM service. For health concerns, please consult with a doctor. Would you like to book an appointment instead?"
-        return "I'm unable to access the LLM service at the moment. Please try booking an appointment with our doctors."
+        yield "I'm unable to access the LLM service at the moment. Please try booking an appointment with our doctors."
+        return
     
     messages = []
-    
     if system_message:
         messages.append({"role": "system", "content": system_message})
     
-    # Add conversation history for context
     if history:
         messages.extend(history)
     
     messages.append({"role": "user", "content": prompt})
     
-    # Retry up to 6 times on empty response (API sometimes returns empty)
-    max_retries = 6
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
     
-    for attempt in range(max_retries):
-        try:
-            headers = {
-                "Authorization": f"Bearer {API_KEY}",
-                "Content-Type": "application/json"
-            }
-            
-            payload = {
-                "model": MODEL,
-                "messages": messages,
-                "temperature": 0.7,
-                "max_tokens": 500,
-            }
-            
-            response = make_api_request_with_retry(payload, headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                # Validate response structure
-                if not data.get("choices") or len(data["choices"]) == 0:
-                    print(f"DEBUG: Empty choices array (attempt {attempt + 1}/{max_retries}). Response: {data}")
-                    if attempt < max_retries - 1:
-                        time.sleep(1)  # Wait before retry
-                        continue
-                    return "Error: API returned no response. Please try again."
-                
-                message = data["choices"][0].get("message", {})
-                content = message.get("content", "").strip()
-                
-                if not content:
-                    print(f"DEBUG: Empty content (attempt {attempt + 1}/{max_retries}). Message: {message}")
-                    if attempt < max_retries - 1:
-                        time.sleep(1)  # Wait before retry
-                        continue
-                    return "Error: API returned empty response. Please try again later."
-                
-                # Success - return the response
-                if attempt > 0:
-                    print(f"✓ Got valid response on attempt {attempt + 1}")
-                return clean_markdown(content)
-            else:
-                error_msg = f"API Error (status {response.status_code})"
-                try:
-                    error_data = response.json()
-                    if "error" in error_data:
-                        error_msg += f": {error_data['error']}"
-                except:
-                    error_msg += f": {response.text[:200]}"
-                return error_msg
-                
-        except requests.exceptions.Timeout:
-            return "The LLM service is taking too long to respond. Please try again later."
-        except requests.exceptions.ConnectionError:
-            return "Cannot connect to the LLM service. Please check your internet connection and try again."
-        except Exception as e:
-            return f"Error communicating with AI service: {str(e)}"
+    payload = {
+        "model": MODEL,
+        "messages": messages,
+        "temperature": 0.7,
+        "stream": True,
+        "max_tokens": 800,
+    }
     
-    return "Error: API returned empty response after multiple attempts. Please try again later."
+    response = make_api_request_with_retry(payload, headers)
+    
+    if not response:
+        yield "Error: Could not connect to AI service. Please try again."
+        return
+
+    # Parse streaming response
+    try:
+        for line in response.iter_lines():
+            if line:
+                line = line.decode('utf-8')
+                if line.startswith('data: '):
+                    data_str = line[6:]
+                    if data_str.strip() == '[DONE]':
+                        break
+                    
+                    try:
+                        data = json.loads(data_str)
+                        if 'choices' in data and len(data['choices']) > 0:
+                            content = data['choices'][0]['delta'].get('content', '')
+                            if content:
+                                yield content
+                    except json.JSONDecodeError:
+                        continue
+    except Exception as e:
+        print(f"Error parsing stream: {str(e)}")
+        yield f" Error processing response: {str(e)}"
+
 
 
 def classify_query(user_message: str):
     """Classify the user's query type."""
     message_lower = user_message.lower()
+    
+    # Check for image/PDF upload intent
+    upload_keywords = ["رفع", "صور", "صورة", "أشعة", "اشعه", "upload", "image", "xray", "x-ray", "pdf", "تقرير", "scan"]
+    if any(word in message_lower for word in upload_keywords):
+        return "upload"
     
     # Check for appointment booking
     if any(word in message_lower for word in ["book", "appointment", "schedule", "reserve","حجز"]):
@@ -332,7 +335,7 @@ def index():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Handle chat messages with conversation memory per patient."""
+    """Handle chat messages with conversation memory per patient (Streaming)."""
     data = request.json
     user_message = data.get('message', '').strip()
     patient_id = data.get('patient_id', 'anonymous')  # Default to 'anonymous' if not provided
@@ -350,31 +353,58 @@ def chat():
     # Classify the query
     query_type = classify_query(user_message)
     
-    # Route to appropriate handler with history
-    if query_type == "health":
-        response = handle_health_question(user_message, history)
-    elif query_type == "appointment":
-        response = handle_appointment_request(user_message, history)
-    elif query_type == "availability":
-        response = handle_availability_query(user_message, history)
-    elif query_type == "faq":
-        response = handle_faq(user_message, history)
-    else:
-        response = "I'm not sure how to help with that. Try asking about symptoms, booking an appointment, or general clinic information."
-    
-    # Store the exchange in history
-    conversation_history[patient_id].append({"role": "user", "content": user_message})
-    conversation_history[patient_id].append({"role": "assistant", "content": response})
-    
-    # Limit history size to prevent memory issues (keep last 50 messages)
-    if len(conversation_history[patient_id]) > 50:
-        conversation_history[patient_id] = conversation_history[patient_id][-50:]
-    
-    return jsonify({
-        "response": response,
-        "query_type": query_type,
-        "patient_id": patient_id
-    })
+    def generate():
+        # Route to appropriate handler with history
+        if query_type == "upload":
+            # For upload prompt, we just return the string immediately
+            gen_response = "ممتاز! 📷 اضغط على زر 📎 بجانب مربع الكتابة لرفع الصورة أو ملف PDF.\n\nأنواع الملفات المدعومة:\n🦷 صور أشعة الأسنان\n🦴 صور أشعة العظام\n📄 تقارير طبية PDF"
+        elif query_type == "health":
+            gen_response = handle_health_question(user_message, history)
+        elif query_type == "appointment":
+            gen_response = handle_appointment_request(user_message, history)
+        elif query_type == "availability":
+            gen_response = handle_availability_query(user_message, history)
+        elif query_type == "faq":
+            gen_response = handle_faq(user_message, history)
+        else:
+            gen_response = "I'm not sure how to help with that. Try asking about symptoms, booking an appointment, or general clinic information."
+        
+        full_response_text = ""
+        
+        # Stream the response
+        try:
+            if isinstance(gen_response, str):
+                full_response_text = gen_response
+                # Yield single chunk for static text
+                yield json.dumps({"chunk": gen_response}) + "\n"
+            else:
+                # Iterate generator for streaming content
+                for chunk in gen_response:
+                    full_response_text += chunk
+                    yield json.dumps({"chunk": chunk}) + "\n"
+        except Exception as e:
+            error_chunk = f"\nError generating response: {str(e)}"
+            full_response_text += error_chunk
+            yield json.dumps({"chunk": error_chunk}) + "\n"
+        
+        # Store the exchange in history
+        conversation_history[patient_id].append({"role": "user", "content": user_message})
+        conversation_history[patient_id].append({"role": "assistant", "content": full_response_text})
+        
+        # Limit history size
+        if len(conversation_history[patient_id]) > 50:
+            conversation_history[patient_id] = conversation_history[patient_id][-50:]
+        
+        # Final detailed JSON with done=true
+        yield json.dumps({
+            "done": True,
+            "response": full_response_text,
+            "query_type": query_type,
+            "patient_id": patient_id,
+            "show_upload": query_type == "upload"
+        }) + "\n"
+
+    return Response(stream_with_context(generate()), mimetype='application/x-ndjson')
 
 
 @app.route('/api/doctors', methods=['GET'])
@@ -474,6 +504,240 @@ def get_patient_appointments(patient_id):
         "patient_id": patient_id,
         "appointments": patient_appointments,
         "count": len(patient_appointments)
+    })
+
+
+# ==================== FILE UPLOAD ENDPOINTS ====================
+
+def allowed_file(filename, allowed_extensions):
+    """Check if file extension is allowed."""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
+def analyze_image_with_api(image_bytes, image_type):
+    """Send image to appropriate medical API for analysis."""
+    try:
+        if image_type == 'bone':
+            api_url = f"{BONE_DETECT_API}/predict_for_llm"
+        elif image_type in ['dental', 'dental_photo', 'dental_xray']:
+            api_url = f"{ORAL_CLASSIFY_API}/predict_for_llm"
+        else:
+            return {"error": f"Unknown image type: {image_type}"}
+
+        
+        files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
+        response = requests.post(api_url, files=files, timeout=60)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": f"API error: {response.status_code}"}
+    except requests.exceptions.ConnectionError:
+        return {"error": f"Cannot connect to {image_type} API. Make sure it's running."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def extract_pdf_text(pdf_bytes):
+    """Extract text from PDF file."""
+    if not PDF_SUPPORT:
+        return {"error": "PDF support not available. Install pdfplumber."}
+    
+    try:
+        text_content = []
+        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+            for i, page in enumerate(pdf.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text_content.append(f"--- صفحة {i+1} ---\n{page_text}")
+        
+        if text_content:
+            return {"success": True, "text": "\n\n".join(text_content), "pages": len(text_content)}
+        else:
+            return {"error": "لم يتم العثور على نص في الملف"}
+    except Exception as e:
+        return {"error": f"خطأ في قراءة PDF: {str(e)}"}
+
+
+def generate_medical_report(analysis_result, file_type, image_type=None):
+    """Generate medical report using LLM based on analysis results."""
+    if not LLM_AVAILABLE:
+        return f"نتائج التحليل:\n{json.dumps(analysis_result, ensure_ascii=False, indent=2)}"
+    
+    if file_type == 'image':
+        if 'error' in analysis_result:
+            return f"خطأ في التحليل: {analysis_result['error']}"
+        
+        prompt = f"""أنت طبيب متخصص. اكتب تقرير طبي مختصر بالعربية بناءً على نتائج التحليل.
+
+نتائج التحليل:
+{json.dumps(analysis_result, ensure_ascii=False, indent=2)}
+
+اكتب التقرير بالشكل التالي (استخدم الرموز):
+
+📋 التشخيص الرئيسي:
+[اسم الحالة] - نسبة الثقة: [X]%
+
+⚠️ الشدة: [منخفضة/متوسطة/عالية]
+
+💊 التوصيات:
+1. [توصية 1]
+2. [توصية 2]
+3. [توصية 3]
+
+⏰ المتابعة: [متى يجب المتابعة]
+
+اجعل التقرير مختصر وواضح. لا تستخدم جداول."""
+
+    
+    elif file_type == 'pdf':
+        if 'error' in analysis_result:
+            return f"خطأ في قراءة الملف: {analysis_result['error']}"
+        
+        prompt = f"""أنت طبيب متخصص. قم بتحليل التقرير الطبي التالي وتلخيصه باللغة العربية:
+
+محتوى التقرير:
+{analysis_result.get('text', '')[:3000]}
+
+قدم ملخصاً مختصراً يتضمن:
+1. النتائج الرئيسية
+2. أي قيم غير طبيعية
+3. التوصيات إن وجدت"""
+    
+    else:
+        return "نوع ملف غير معروف"
+    
+    return get_llm_response(prompt)
+
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    """Handle file uploads (images and PDFs) for medical analysis."""
+    if 'file' not in request.files:
+        return jsonify({"error": "لم يتم إرسال ملف"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "لم يتم اختيار ملف"}), 400
+    
+    patient_id = request.form.get('patient_id', 'anonymous')
+    image_type = request.form.get('image_type', 'dental')  # 'dental' or 'bone'
+    
+    filename = file.filename.lower()
+    file_bytes = file.read()
+    
+    # Determine file type and process
+    if allowed_file(filename, ALLOWED_IMAGE_EXTENSIONS):
+        if not IMAGE_SUPPORT:
+            return jsonify({"error": "دعم الصور غير متاح"}), 500
+        
+        # Analyze image with appropriate API
+        analysis_result = analyze_image_with_api(file_bytes, image_type)
+        
+        # Generate report
+        report = generate_medical_report(analysis_result, 'image', image_type)
+        
+        # Store in conversation history
+        if patient_id not in conversation_history:
+            conversation_history[patient_id] = []
+        
+        user_msg = f"[تم رفع صورة أشعة {'عظام' if image_type == 'bone' else 'أسنان'}]"
+        conversation_history[patient_id].append({"role": "user", "content": user_msg})
+        conversation_history[patient_id].append({"role": "assistant", "content": report})
+        
+        # Detect severity from analysis result
+        severity = "low"
+        confidence_raw = analysis_result.get('confidence', 0)
+        predicted_class = str(analysis_result.get('predicted_class', '')).lower()
+        
+        # Parse confidence to float, handling strings like "99.7%"
+        try:
+            if isinstance(confidence_raw, str):
+                confidence = float(confidence_raw.replace('%', '').strip())
+            else:
+                confidence = float(confidence_raw)
+        except (ValueError, TypeError):
+            confidence = 0.0
+            
+        print(f"DEBUG: confidence_raw={confidence_raw}, parsed={confidence}, predicted_class={predicted_class}")
+        
+        # High severity conditions (confidence is percentage like 99.7, not decimal)
+        high_severity_conditions = ['caries', 'تسوس', 'fracture', 'كسر', 'gingivitis', 'التهاب']
+        is_severe_condition = any(cond in predicted_class for cond in high_severity_conditions)
+        
+        if confidence > 80 and is_severe_condition:
+            severity = "high"
+        elif confidence > 50:
+            severity = "medium"
+        
+        print(f"DEBUG: severity={severity}, is_severe_condition={is_severe_condition}")
+        
+        # Add follow-up suggestion based on severity
+        follow_up = None
+        if severity == "high":
+            follow_up = "⚠️ الحالة تحتاج متابعة سريعة. هل تريد حجز موعد مع طبيب الآن؟"
+            report += f"\n\n{follow_up}"
+        elif severity == "medium":
+            follow_up = "💡 نصائح للعناية: حافظ على نظافة الأسنان واستخدم غسول الفم. تابع مع طبيب في أقرب وقت مناسب."
+            report += f"\n\n{follow_up}"
+        
+        return jsonify({
+            "success": True,
+            "file_type": "image",
+            "image_type": image_type,
+            "analysis": analysis_result,
+            "report": report,
+            "patient_id": patient_id,
+            "severity": severity,
+            "suggest_booking": severity == "high"
+        })
+    
+    elif allowed_file(filename, ALLOWED_PDF_EXTENSIONS):
+        # Extract text from PDF
+        extraction_result = extract_pdf_text(file_bytes)
+        
+        if 'error' in extraction_result:
+            return jsonify(extraction_result), 400
+        
+        # Generate summary report
+        report = generate_medical_report(extraction_result, 'pdf')
+        
+        # Store in conversation history
+        if patient_id not in conversation_history:
+            conversation_history[patient_id] = []
+        
+        user_msg = f"[تم رفع ملف PDF: {extraction_result.get('pages', 0)} صفحات]"
+        conversation_history[patient_id].append({"role": "user", "content": user_msg})
+        conversation_history[patient_id].append({"role": "assistant", "content": report})
+        
+        return jsonify({
+            "success": True,
+            "file_type": "pdf",
+            "pages": extraction_result.get('pages', 0),
+            "text_preview": extraction_result.get('text', '')[:500] + "...",
+            "report": report,
+            "patient_id": patient_id
+        })
+    
+    else:
+        return jsonify({
+            "error": f"نوع ملف غير مدعوم. الأنواع المدعومة: {', '.join(ALLOWED_IMAGE_EXTENSIONS | ALLOWED_PDF_EXTENSIONS)}"
+        }), 400
+
+
+@app.route('/api/capabilities', methods=['GET'])
+def get_capabilities():
+    """Get chatbot capabilities and available features."""
+    return jsonify({
+        "image_support": IMAGE_SUPPORT,
+        "pdf_support": PDF_SUPPORT,
+        "llm_available": LLM_AVAILABLE,
+        "bone_detect_api": BONE_DETECT_API,
+        "oral_classify_api": ORAL_CLASSIFY_API,
+        "allowed_image_types": list(ALLOWED_IMAGE_EXTENSIONS),
+        "allowed_pdf_types": list(ALLOWED_PDF_EXTENSIONS),
+        "max_file_size_mb": 16
     })
 
 
