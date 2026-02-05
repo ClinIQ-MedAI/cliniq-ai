@@ -7,7 +7,7 @@ Medical Imaging AI by ClinIQ-MedAI - Advanced deep learning solutions for clinic
 | Project | Description | Status |
 |---------|-------------|--------|
 | [**chatbot-app/**](./chatbot-app/) | Healthcare Chatbot with Arabic Support | ✅ Active |
-| [**bone-detect/**](./bone-detect/) | Pediatric Wrist Fracture Detection | ✅ Training |
+| [**bone-detect/**](./bone-detect/) | Pediatric Wrist Fracture Detection | ✅ Production |
 | [**oral-xray/**](./oral-xray/) | Dental X-Ray Detection & Classification | ✅ Production |
 | [**oral-classify/**](./oral-classify/) | Oral Disease Classification with GradCAM | ✅ Production |
 | **dmri/** | Diffusion MRI Analysis | 🚧 Coming Soon |
@@ -47,9 +47,17 @@ python app.py
 
 Pediatric wrist trauma detection using GrazPedWri-DX dataset:
 
-- **YOLOv11x** - State-of-the-art object detection
-- **800px images** - High resolution for subtle fractures
+- **YOLOv11x** - 56.9M parameters, state-of-the-art detection
+- **mAP@0.5: 0.875** - High precision fracture detection
 - **Arabic + English APIs** - LLM-ready diagnosis output
+
+### Model Performance
+| Metric | Value |
+|--------|-------|
+| mAP@0.5 | **0.875** |
+| mAP@0.5:0.95 | 0.587 |
+| Precision | 0.856 |
+| Recall | 0.840 |
 
 ### Classes Detected (TOP-3)
 | Class | Description | Priority |
