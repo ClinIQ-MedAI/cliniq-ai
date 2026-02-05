@@ -42,6 +42,7 @@ MODEL = os.getenv("MODEL", "gpt-oss-120b")
 # Medical API endpoints
 BONE_DETECT_API = "http://127.0.0.1:8001"
 ORAL_CLASSIFY_API = "http://127.0.0.1:8002"
+CHEST_XRAY_API = "http://127.0.0.1:8003"
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -522,6 +523,8 @@ def analyze_image_with_api(image_bytes, image_type):
             api_url = f"{BONE_DETECT_API}/predict_for_llm"
         elif image_type in ['dental', 'dental_photo', 'dental_xray']:
             api_url = f"{ORAL_CLASSIFY_API}/predict_for_llm"
+        elif image_type == 'chest':
+            api_url = f"{CHEST_XRAY_API}/predict_for_llm?include_gradcam=true"
         else:
             return {"error": f"Unknown image type: {image_type}"}
 
@@ -682,6 +685,9 @@ def upload_file():
             follow_up = "💡 نصائح للعناية: حافظ على نظافة الأسنان واستخدم غسول الفم. تابع مع طبيب في أقرب وقت مناسب."
             report += f"\n\n{follow_up}"
         
+        # Include GradCAM image in response if available (for chest x-ray)
+        gradcam_image = analysis_result.get('gradcam_image_base64', None)
+        
         return jsonify({
             "success": True,
             "file_type": "image",
@@ -690,7 +696,8 @@ def upload_file():
             "report": report,
             "patient_id": patient_id,
             "severity": severity,
-            "suggest_booking": severity == "high"
+            "suggest_booking": severity == "high",
+            "gradcam_image": gradcam_image
         })
     
     elif allowed_file(filename, ALLOWED_PDF_EXTENSIONS):
