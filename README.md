@@ -52,19 +52,13 @@ Pediatric wrist trauma detection using GrazPedWri-DX dataset:
 - **Arabic + English APIs** - LLM-ready diagnosis output
 
 ### Model Performance
-| Metric | Value |
-|--------|-------|
-| mAP@0.5 | **0.875** |
-| mAP@0.5:0.95 | 0.587 |
-| Precision | 0.856 |
-| Recall | 0.840 |
+| Class | AP@0.5 | Description |
+|-------|--------|-------------|
+| **fracture** | **0.970** | Bone fractures - PRIMARY 🔴 |
+| **metal** | 0.942 | Surgical hardware/implants |
+| **periostealreaction** | 0.708 | Bone healing indicators |
 
-### Classes Detected (TOP-3)
-| Class | Description | Priority |
-|-------|-------------|----------|
-| **fracture** | Bone fractures | 🔴 HIGH |
-| **metal** | Surgical hardware/implants | ℹ️ INFO |
-| **periostealreaction** | Bone healing indicators | 🟡 MODERATE |
+*Overall mAP@0.5: 0.875 | Precision: 0.856 | Recall: 0.840*
 
 ### API Endpoints
 ```

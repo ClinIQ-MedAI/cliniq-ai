@@ -4,21 +4,23 @@ YOLOv11x-based pediatric wrist fracture detection trained on the GrazPedWri-DX d
 
 ## 📊 Model Performance
 
+### Per-Class AP@0.5
+
+| Class | AP@0.5 | Description |
+|-------|--------|-------------|
+| **fracture** | **0.970** | Bone fractures - PRIMARY target |
+| **metal** | 0.942 | Surgical hardware/implants |
+| **periostealreaction** | 0.708 | Bone healing indicators |
+
+### Overall Metrics
+
 | Metric | Value |
 |--------|-------|
 | **mAP@0.5** | 0.875 |
-| **mAP@0.5:0.95** | 0.587 |
-| **Precision** | 0.856 |
-| **Recall** | 0.840 |
-| **Epochs** | 100 |
-
-### Per-Class Performance
-
-| Class | Description | Priority |
-|-------|-------------|----------|
-| **fracture** | Bone fractures requiring immediate attention | 🔴 HIGH |
-| **metal** | Surgical hardware/implants from prior intervention | ℹ️ INFO |
-| **periostealreaction** | Bone healing or pathological process indicators | 🟡 MODERATE |
+| mAP@0.5:0.95 | 0.587 |
+| Precision | 0.856 |
+| Recall | 0.840 |
+| Epochs | 100 |
 
 ---
 
