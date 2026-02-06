@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مساعد الرعاية الصحية | Healthcare Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="chatbot-wrapper">
+            <!-- Header -->
+            <div class="header">
+                <h1>ClinIQ</h1>
+                <p>مساعدك الصحي الذكي</p>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <p>مرحباً! 👋 كيف أقدر أساعدك؟</p>
+                </div>
+            </div>
+
+            <!-- File Upload Preview -->
+            <div id="uploadPreview" class="upload-preview hidden">
+                <div class="preview-content">
+                    <img id="imagePreview" src="" alt="Preview" class="hidden">
+                    <div id="pdfPreview" class="pdf-icon hidden">📄 PDF</div>
+                    <span id="fileName"></span>
+                    <button type="button" onclick="clearUpload()" class="clear-btn">✕</button>
+                </div>
+                <div class="image-type-selector" id="imageTypeSelector">
+                    <label>
+                        <input type="radio" name="imageType" value="dental_photo" checked> 🦷 صورة أسنان
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="dental_xray"> 🩻 أشعة أسنان
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="bone"> 🦴 أشعة عظام
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="chest"> 🫁 أشعة صدر
+                    </label>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <form id="chatForm" onsubmit="sendMessage(event)">
+                    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا... / Type your message..."
+                        autocomplete="off">
+                    <label for="fileInput" class="file-upload-btn" title="ارفع صورة أو PDF">
+                        📎
+                    </label>
+                    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+                        onchange="handleFileSelect(event)" style="display: none;">
+                    <button type="submit" id="sendButton">➤</button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button onclick="quickAction('أخبرني عن أعراض الإنفلونزا')">🤒 الإنفلونزا</button>
+                <button onclick="quickAction('أريد حجز موعد')">📅 حجز موعد</button>
+                <button onclick="document.getElementById('fileInput').click()">📷 رفع صورة</button>
+                <button onclick="quickAction('ما هي ساعات عمل العيادة؟')">🕐 ساعات العمل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for booking appointments -->
+    <div id="bookingModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeBookingModal()">&times;</span>
+            <h2>حجز موعد</h2>
+
+            <form id="bookingForm" onsubmit="submitBooking(event)">
+                <div class="form-group">
+                    <label for="patientName">الاسم:</label>
+                    <input type="text" id="patientName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="doctorSelect">اختر الطبيب:</label>
+                    <select id="doctorSelect" required onchange="updateAvailability()">
+                        <option value="">-- اختر طبيب --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="daySelect">اختر اليوم:</label>
+                    <select id="daySelect" required onchange="updateTimeSlots()">
+                        <option value="">-- اختر يوم --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="timeSelect">اختر الوقت:</label>
+                    <select id="timeSelect" required onchange="checkQueue()">
+                        <option value="">-- اختر وقت --</option>
+                    </select>
+                </div>
+
+                <div id="queueInfo" class="queue-info hidden">
+                    <p id="queueText"></p>
+                </div>
+
+                <button type="submit" class="submit-btn">تأكيد الحجز</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
