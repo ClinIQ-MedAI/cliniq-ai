@@ -1,0 +1,9 @@
+name: dental_calculus_detection
+
+path: /home/moabouag/far/oral-detect/oral_yolo_dataset/Data_split
+
+train: images/train
+val: images/val
+
+nc: 4
+names: ['Caries','Ulcer','Tooth Discoloration','Gingivitis']
