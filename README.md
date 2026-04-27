@@ -1,16 +1,12 @@
 # ClinIQ AI Platform
 
-Production-grade medical AI monorepo by **ClinIQ-MedAI**.
-
 ClinIQ is a bilingual medical AI assistant designed to simplify healthcare. It enables patients to upload scans and receive AI-powered, easy-to-understand medical insights.
-
-🔗 **Repository:** [https://github.com/ClinIQ-MedAI/cliniq-ai](https://github.com/ClinIQ-MedAI/cliniq-ai)
 
 ---
 
 ## 📖 Why This Repo Matters
 
-ClinIQ AI is not a single-model demo — it is a **complete, production-oriented AI stack**:
+ClinIQ AI is not a single-model demo - it is a **complete, production-oriented AI stack**:
 
 * Conversational triage in **Arabic & English**
 * Multi-modal medical uploads (X-rays, images, PDFs)
