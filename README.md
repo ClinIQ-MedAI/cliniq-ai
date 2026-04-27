@@ -115,14 +115,15 @@ Flask Chatbot Gateway (chatbot-app :5000)
 ## Model Artifacts (Google Drive)
 
 The heavy checkpoints are intentionally stored outside GitHub and referenced here.
+Root Drive folder: https://drive.google.com/open?id=1sqt6QCXp_3UmJrEmM8b9Fu0CRC4f9cb2
 
 | Service | Artifact | Size | Drive Link |
 |---|---|---:|---|
-| Bone Detect | `YOLO11x_TOP3_20260203_0645/weights/best.pt` | ~110 MB | `TO_BE_UPDATED_AFTER_DRIVE_UPLOAD` |
-| Oral Classify | `SOTA_FINAL_20251124_1300/best_model.pth` | ~189 MB | `TO_BE_UPDATED_AFTER_DRIVE_UPLOAD` |
-| Oral X-ray Detector | `yolo_v8x_base_1024/weights/best.pt` | ~391 MB | `TO_BE_UPDATED_AFTER_DRIVE_UPLOAD` |
-| Oral X-ray Refiner | `convnext_large_20260130_090637/weights/best.pt` | ~2.2 GB | `TO_BE_UPDATED_AFTER_DRIVE_UPLOAD` |
-| Chest X-ray | `outputs/checkpoints/best.pt` | ~3.0 GB | `TO_BE_UPDATED_AFTER_DRIVE_UPLOAD` |
+| Bone Detect | `YOLO11x_TOP3_20260203_0645/weights/best.pt` | ~110 MB | https://drive.google.com/open?id=1Oh_R0gZL8gilMKGjDlbiLNTWoMz4EhKx |
+| Oral Classify | `SOTA_FINAL_20251124_1300/best_model.pth` | ~189 MB | https://drive.google.com/open?id=1JBsf0xjm6xI-A0ofxuu5ufFgf0sVbx4g |
+| Oral X-ray Detector | `yolo_v8x_base_1024/weights/best.pt` | ~391 MB | https://drive.google.com/open?id=13VHP4sKBWCMJrF7dZskuUrUun9MnCe_C |
+| Oral X-ray Refiner | `convnext_large_20260130_090637/weights/best.pt` | ~2.2 GB | https://drive.google.com/open?id=1oWcRQZvc6UR3iyJJrs8I7bYP_0xb5oVO |
+| Chest X-ray | `outputs/checkpoints/best.pt` | ~3.0 GB | https://drive.google.com/open?id=1XoU0ai5lL5zsES936eis3niOnQ6BFIK6 |
 
 ## Screenshot Gallery Placeholders
 
