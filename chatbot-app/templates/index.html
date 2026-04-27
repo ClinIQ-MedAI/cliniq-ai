@@ -1,53 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthcare Chatbot</title>
+    <title>مساعد الرعاية الصحية | Healthcare Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <div class="container">
+        <!-- Sidebar: chat history & new chat -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 id="sidebarTitle">المحادثات</h2>
+                <button type="button" class="icon-btn" id="toggleSidebarBtn" onclick="toggleSidebar()" title="إخفاء/إظهار" aria-label="toggle sidebar">‹</button>
+            </div>
+            <button type="button" class="new-chat-btn" id="newChatBtn" onclick="newChat()">
+                <span>＋</span> <span id="newChatLabel">محادثة جديدة</span>
+            </button>
+            <div class="chat-list" id="chatList"></div>
+            <div class="sidebar-footer">
+                <small id="sidebarFooterText">ClinIQ © 2025</small>
+            </div>
+        </aside>
+
+        <button type="button" class="sidebar-open-btn" id="sidebarOpenBtn" onclick="toggleSidebar()" title="عرض المحادثات" aria-label="open sidebar">☰</button>
+
         <div class="chatbot-wrapper">
             <!-- Header -->
             <div class="header">
-                <h1>Healthcare Assistant</h1>
-                <p>Ask about diseases, book appointments, or get clinic information</p>
+                <div class="header-left">
+                    <h1>ClinIQ</h1>
+                    <p id="headerSubtitle">مساعدك الصحي الذكي</p>
+                </div>
+                <div class="header-actions">
+                    <select id="languageSelect" class="lang-select" onchange="setPreferredLanguage(this.value)" title="Default language for uploads without text" aria-label="default language">
+                        <option value="ar">AR</option>
+                        <option value="en">EN</option>
+                    </select>
+                    <button type="button" class="icon-btn danger-btn" id="clearCurrentChatBtn" onclick="clearCurrentChatHistory()" title="مسح هيستوري المحادثة الحالية" aria-label="clear current chat history">🗑</button>
+                    <button type="button" class="icon-btn" id="exportChatBtn" onclick="exportChat()" title="تصدير المحادثة" aria-label="export chat">⤓</button>
+                    <button type="button" class="icon-btn" onclick="toggleTheme()" id="themeToggleBtn" title="تبديل الوضع" aria-label="toggle theme">🌙</button>
+                </div>
             </div>
 
             <!-- Chat Messages Area -->
             <div class="chat-messages" id="chatMessages">
                 <div class="message bot-message">
-                    <p>Hello! I'm your healthcare assistant. I can help you with:</p>
-                    <ul>
-                        <li>General health information about diseases and symptoms</li>
-                        <li>Book appointments with our doctors</li>
-                        <li>Check doctor availability</li>
-                        <li>Answer questions about our clinic</li>
-                    </ul>
-                    <p>How can I help you today?</p>
+                    <p id="welcomeMessage">مرحباً! 👋 كيف أقدر أساعدك؟</p>
+                </div>
+            </div>
+
+            <!-- File Upload Preview -->
+            <div id="uploadPreview" class="upload-preview hidden">
+                <div class="preview-content">
+                    <img id="imagePreview" src="" alt="Preview" class="hidden">
+                    <div id="pdfPreview" class="pdf-icon hidden">📄 PDF</div>
+                    <span id="fileName"></span>
+                    <button type="button" onclick="clearUpload()" class="clear-btn">✕</button>
+                </div>
+                <div class="image-type-selector" id="imageTypeSelector">
+                    <label>
+                        <input type="radio" name="imageType" value="dental_photo" checked> <span id="imageTypeDentalPhotoLabel">🦷 صورة أسنان</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="dental_xray"> <span id="imageTypeDentalXrayLabel">🩻 أشعة أسنان</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="bone"> <span id="imageTypeBoneLabel">🦴 أشعة عظام</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="chest"> <span id="imageTypeChestLabel">🫁 أشعة صدر</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="imageType" value="prescription"> <span id="imageTypePrescriptionLabel">📝 روشتة</span>
+                    </label>
                 </div>
             </div>
 
             <!-- Input Area -->
             <div class="input-area">
                 <form id="chatForm" onsubmit="sendMessage(event)">
-                    <input 
-                        type="text" 
-                        id="messageInput" 
-                        placeholder="اكتب رسالتك هنا... / Type your message..." 
-                        autocomplete="off"
-                    >
+                    <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا... / Type your message..."
+                        autocomplete="off">
+                    <label for="fileInput" class="file-upload-btn" id="manualUploadPinLabel" onclick="prepareManualUploadContext()" title="ارفع صورة أو PDF">
+                        📎
+                    </label>
+                    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+                        onchange="handleFileSelect(event)" style="display: none;">
                     <button type="submit" id="sendButton">➤</button>
                 </form>
             </div>
 
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <button onclick="quickAction('Tell me about flu symptoms')">Flu Info</button>
-                <button onclick="quickAction('I want to book an appointment')">Book Appointment</button>
-                <button onclick="quickAction('What are your clinic hours?')">Clinic Hours</button>
-                <button onclick="quickAction('Which doctors are available?')">Available Doctors</button>
+                <button id="quickFluBtn" onclick="runQuickAction('flu')">🤒 الإنفلونزا</button>
+                <button id="quickBookingBtn" onclick="runQuickAction('appointment')">📅 حجز موعد</button>
+                <button id="quickScanBtn" onclick="showUploadTypeOptionsInChat()">🩻 رفع أشعة</button>
+                <button id="quickManualUploadBtn" onclick="openManualUploadPicker()">📎 رفع يدوي</button>
+                <button id="quickHoursBtn" onclick="runQuickAction('hours')">🕐 ساعات العمل</button>
             </div>
         </div>
     </div>
@@ -56,32 +108,32 @@
     <div id="bookingModal" class="modal hidden">
         <div class="modal-content">
             <span class="close" onclick="closeBookingModal()">&times;</span>
-            <h2>Book an Appointment</h2>
-            
+            <h2 id="bookingModalTitle">حجز موعد</h2>
+
             <form id="bookingForm" onsubmit="submitBooking(event)">
                 <div class="form-group">
-                    <label for="patientName">Your Name:</label>
+                    <label for="patientName" id="patientNameLabel">الاسم:</label>
                     <input type="text" id="patientName" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="doctorSelect">Select Doctor:</label>
+                    <label for="doctorSelect" id="doctorSelectLabel">اختر الطبيب:</label>
                     <select id="doctorSelect" required onchange="updateAvailability()">
-                        <option value="">-- Choose a doctor --</option>
+                        <option value="" id="doctorSelectPlaceholder">-- اختر طبيب --</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="daySelect">Select Day:</label>
+                    <label for="daySelect" id="daySelectLabel">اختر اليوم:</label>
                     <select id="daySelect" required onchange="updateTimeSlots()">
-                        <option value="">-- Choose a day --</option>
+                        <option value="" id="daySelectPlaceholder">-- اختر يوم --</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="timeSelect">Select Time:</label>
+                    <label for="timeSelect" id="timeSelectLabel">اختر الوقت:</label>
                     <select id="timeSelect" required onchange="checkQueue()">
-                        <option value="">-- Choose a time --</option>
+                        <option value="" id="timeSelectPlaceholder">-- اختر وقت --</option>
                     </select>
                 </div>
 
@@ -89,11 +141,12 @@
                     <p id="queueText"></p>
                 </div>
 
-                <button type="submit" class="submit-btn">Confirm Booking</button>
+                <button type="submit" class="submit-btn" id="bookingSubmitBtn">تأكيد الحجز</button>
             </form>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>

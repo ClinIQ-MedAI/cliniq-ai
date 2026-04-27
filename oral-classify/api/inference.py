@@ -245,11 +245,11 @@ def get_classifier(
     global _classifier_instance
     
     if _classifier_instance is None:
-        # Default to SOTA weights
+        # Default to SOTA weights (consolidated under cliniq/models/oral-classify)
         if weights_path is None:
             weights_path = str(
-                Path(__file__).parent.parent / 
-                "SOTA_FINAL_20251124_1300" / "best_model.pth"
+                Path(__file__).resolve().parents[2]
+                / "models" / "oral-classify" / "SOTA_FINAL_20251124_1300" / "best_model.pth"
             )
         
         _classifier_instance = OralClassifier(

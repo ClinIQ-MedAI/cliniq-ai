@@ -10,6 +10,7 @@ Or:
 
 import io
 import sys
+import base64
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, List
@@ -283,27 +284,95 @@ SEVERITY_MAP = {
 }
 
 
+def _bbox_from_gradcam(cam: np.ndarray, img_w: int, img_h: int, thr: float = 0.3):
+    """Extract bounding box(es) from the hottest regions of a GradCAM heatmap.
+
+    Returns a list of (x1, y1, x2, y2) boxes in original image coordinates.
+    """
+    try:
+        import cv2
+        if cam is None or cam.size == 0:
+            return []
+        cam = np.asarray(cam, dtype=np.float32)
+        if cam.max() > 0:
+            cam = cam / cam.max()
+        cam_resized = cv2.resize(cam, (img_w, img_h))
+        # Erode the high-activation mask so that adjacent lesions get split
+        # into separate connected components instead of one giant blob.
+        mask = (cam_resized >= thr).astype(np.uint8) * 255
+        kernel = np.ones((3, 3), np.uint8)
+        eroded = cv2.erode(mask, kernel, iterations=1)
+        if eroded.sum() < mask.sum() * 0.05:
+            eroded = mask  # erosion ate everything; fall back
+        num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(eroded, connectivity=8)
+        boxes = []
+        min_area = max(32, (img_w * img_h) // 2000)
+        for i in range(1, num_labels):
+            x, y, w, h, area = stats[i]
+            if area < min_area:
+                continue
+            boxes.append((int(x), int(y), int(x + w), int(y + h)))
+        boxes.sort(key=lambda b: (b[2] - b[0]) * (b[3] - b[1]), reverse=True)
+        return boxes[:10]
+    except Exception as e:
+        print(f"Warning: bbox_from_gradcam failed: {e}")
+        return []
+
+
+def _draw_labeled_box(img_bgr, x1, y1, x2, y2, label, color=(80, 80, 255)):
+    import cv2
+    h, w = img_bgr.shape[:2]
+    line_w = max(2, int(min(h, w) * 0.0025))
+    font_scale = max(0.5, min(h, w) * 0.0014)
+    cv2.rectangle(img_bgr, (x1, y1), (x2, y2), color, line_w)
+    (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
+    ty = max(0, y1 - th - baseline - 2)
+    cv2.rectangle(img_bgr, (x1, ty), (x1 + tw + 4, ty + th + baseline + 2), color, -1)
+    cv2.putText(img_bgr, label, (x1 + 2, ty + th + baseline), cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), 1)
+
+
 @app.post("/predict_for_llm")
 async def predict_for_llm(file: UploadFile = File(...)):
     """
     Classify oral image and return LLM-optimized JSON for report generation.
-    
-    Includes clinical context, findings, and recommendations.
+
+    The annotated image is the GradCAM heatmap overlay on top of the original
+    image, which highlights the region the classifier focused on without
+    inventing fake bounding boxes (the model is a single-label classifier,
+    not a detector).
     """
     if classifier is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
-    
+
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
-        result = classifier.predict(image, top_k=6)
-        
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        # Run GradCAM-aware prediction so we get both the diagnosis and the
+        # heatmap overlay in one call.
+        try:
+            result, overlay = classifier.predict_with_gradcam(image, alpha=0.45)
+        except Exception as gradcam_error:
+            print(f"Warning: GradCAM failed, falling back to plain predict: {gradcam_error}")
+            result = classifier.predict(image, top_k=6)
+            overlay = None
+
         predicted = result["predicted_class"]
         confidence = result["confidence"]
-        
+
+        annotated_image_b64 = None
+        if overlay is not None:
+            try:
+                overlay_img = Image.fromarray(overlay)
+                buf = io.BytesIO()
+                overlay_img.save(buf, format="JPEG", quality=92)
+                annotated_image_b64 = base64.b64encode(buf.getvalue()).decode()
+            except Exception as enc_err:
+                print(f"Warning: could not encode overlay: {enc_err}")
+
         # Generate recommendations
         recommendations = []
         if predicted == "Caries":
@@ -344,22 +413,25 @@ async def predict_for_llm(file: UploadFile = File(...)):
                 "Dental cleaning for extrinsic stains",
                 "Evaluate for pulp vitality if single tooth involved",
             ]
-        
+
         # Build findings
         findings = [
             f"{predicted.upper()} detected with {confidence:.1%} confidence",
             f"Clinical significance: {CLASS_DESCRIPTIONS.get(predicted, 'Unknown condition')}",
         ]
-        
+
         # Top differentials
-        if len(result["top_k"]) > 1:
+        if len(result.get("top_k", [])) > 1:
             differentials = [f"{r['class']} ({r['probability']:.1%})" for r in result["top_k"][1:3]]
             findings.append(f"Differential considerations: {', '.join(differentials)}")
-        
+
         return {
             "patient_context": "Dental/oral examination image analysis",
             "modality": "Intraoral photograph",
             "body_part": "Oral cavity",
+            "annotated_image_base64": annotated_image_b64,
+            # No bbox detections: this is a single-label classifier, not a detector.
+            "detections": [],
             "ai_findings": {
                 "primary_diagnosis": predicted,
                 "confidence": f"{confidence:.1%}",
@@ -368,16 +440,16 @@ async def predict_for_llm(file: UploadFile = File(...)):
             },
             "differential_diagnoses": [
                 {"condition": r["class"], "probability": f"{r['probability']:.1%}"}
-                for r in result["top_k"][1:4]
+                for r in result.get("top_k", [])[1:4]
             ],
-            "all_probabilities": result["all_probabilities"],
+            "all_probabilities": result.get("all_probabilities", {}),
             "urgency": "HIGH" if SEVERITY_MAP.get(predicted) == "HIGH" else "ROUTINE",
             "findings": findings,
             "recommendations": recommendations,
             "summary": f"AI analysis detected {predicted.lower()} with {confidence:.1%} confidence. {CLASS_DESCRIPTIONS.get(predicted, '')}",
             "timestamp": datetime.now().isoformat(),
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -579,7 +651,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "api.server:app",
         host="0.0.0.0",
-        port=8001,
+        port=8004,
         reload=False,
         workers=1
     )

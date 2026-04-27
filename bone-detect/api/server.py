@@ -31,9 +31,9 @@ import cv2
 
 
 # ==================== CONFIG ====================
-MODEL_PATH = Path(__file__).parent.parent / "outputs/YOLO11x_TOP3_20260203_0645/weights/best.pt"
+MODEL_PATH = Path(__file__).resolve().parents[2] / "models" / "bone-detect" / "YOLO11x_TOP3_20260203_0645" / "weights" / "best.pt"
 CLASS_NAMES = ["fracture", "metal", "periostealreaction"]
-CONFIDENCE_THRESHOLD = 0.25
+CONFIDENCE_THRESHOLD = 0.30
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Clinical descriptions for LLM
@@ -109,10 +109,15 @@ def load_model():
 
 
 def process_image(file_bytes: bytes) -> Image.Image:
-    """Process uploaded image."""
+    """Process uploaded image, normalizing 16-bit X-rays to 8-bit RGB."""
     try:
         image = Image.open(io.BytesIO(file_bytes))
-        if image.mode != "RGB":
+        if image.mode in ("I", "I;16", "I;16B", "I;16L", "F"):
+            arr = np.array(image).astype(np.float32)
+            if arr.max() > arr.min():
+                arr = (arr - arr.min()) / (arr.max() - arr.min()) * 255.0
+            image = Image.fromarray(arr.astype(np.uint8)).convert("RGB")
+        elif image.mode != "RGB":
             image = image.convert("RGB")
         return image
     except Exception as e:
@@ -347,12 +352,43 @@ async def predict_for_llm(file: UploadFile = File(...)):
     image = process_image(contents)
     
     detections, findings, img_size = run_detection(image)
+
+    # Render annotated image (or original image if no detections)
+    annotated_image_b64 = None
+    try:
+        img_array = np.array(image)
+        img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+
+        for d in detections:
+            x1, y1, x2, y2 = [int(c) for c in d.bbox]
+            color = (80, 80, 255)
+            cv2.rectangle(img_bgr, (x1, y1), (x2, y2), color, 2)
+            label = f"{d.class_name} {d.confidence:.0%}"
+            (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
+            cv2.rectangle(img_bgr, (x1, y1 - th - baseline - 3), (x1 + tw + 4, y1), color, -1)
+            cv2.putText(img_bgr, label, (x1 + 2, y1 - baseline - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+
+        _, buf = cv2.imencode(".jpg", img_bgr, [cv2.IMWRITE_JPEG_QUALITY, 90])
+        annotated_image_b64 = base64.b64encode(buf).decode()
+    except Exception as render_error:
+        print(f"Warning: could not render annotated bone image: {render_error}")
     
     # Simplified output for LLM
     return {
         "patient_context": "Pediatric patient presenting with wrist pain/trauma",
         "modality": "X-ray",
         "body_part": "Wrist",
+        "detections": [
+            {
+                "class_name": d.class_name,
+                "confidence": d.confidence,
+                "bbox": d.bbox,
+                "description": d.description,
+                "severity": d.severity,
+            }
+            for d in detections
+        ],
+        "annotated_image_base64": annotated_image_b64,
         "ai_findings": [
             {
                 "finding": d.class_name,

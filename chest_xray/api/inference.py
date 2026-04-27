@@ -64,7 +64,7 @@ class ChestXrayClassifier:
             dropout=0.2
         )
         
-        checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
+        checkpoint = torch.load(self.checkpoint_path, map_location=self.device, weights_only=False)
         
         # Handle different checkpoint formats
         if "model_state_dict" in checkpoint:
@@ -179,6 +179,8 @@ class ChestXrayClassifier:
             def __init__(self, category):
                 self.category = category
             def __call__(self, model_output):
+                if model_output.ndim == 1:
+                    return model_output[self.category]
                 return model_output[:, self.category]
         
         grayscale_cam = cam(

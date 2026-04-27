@@ -1,91 +1,54 @@
 """
-Oral Disease Detection API
+Dental X-ray API server (two-stage YOLO + ConvNeXt classifier).
 
-FastAPI server for YOLO-based oral disease detection.
-Returns JSON diagnosis suitable for LLM report generation.
-
-Endpoints:
-    POST /predict - Detect oral diseases and return JSON diagnosis
-    POST /predict_text - Return plain text diagnosis for LLM
-    POST /predict_for_llm - LLM-optimized output for report generation
-
-Classes detected:
-    - Caries: Tooth decay/cavities
-    - Ulcer: Oral lesions
-    - Tooth Discoloration: Tooth color changes
-    - Gingivitis: Gum inflammation
+Wraps the original DentalInferencePipeline so the chatbot gets back the rich
+class set (Wisdom Tooth, Decay, Missing Tooth, Dental Filling, Root Canal
+Filling, Implant, Porcelain Crown, Ceramic Bridge, Apical Periodontitis)
+instead of the 4-class detector-only output.
 """
 
-import io
 import base64
+import io
+import sys
+import tempfile
 from pathlib import Path
 from typing import List, Optional
-from datetime import datetime
 
-import torch
 import numpy as np
-from PIL import Image
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import torch
+import uvicorn
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from ultralytics import YOLO
-import cv2
+from PIL import Image, ImageDraw, ImageFont
 
+# Make the original two-stage pipeline importable.
+# Paths are relative to the consolidated `cliniq/models/oral-xray` tree.
+MODELS_ROOT = Path(__file__).resolve().parents[2] / "models" / "oral-xray"
+if str(MODELS_ROOT) not in sys.path:
+    sys.path.insert(0, str(MODELS_ROOT))
 
-# ==================== CONFIG ====================
-MODEL_PATH = Path(__file__).parent.parent / "oral_runs/YOLOv11x_ORAL_SOTA_20251125_0709/weights/last.pt"
-CLASS_NAMES = ["Caries", "Ulcer", "Tooth Discoloration", "Gingivitis"]
-CONFIDENCE_THRESHOLD = 0.25
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+from src.inference.pipeline import DentalInferencePipeline  # noqa: E402
 
-# Clinical descriptions
-CLASS_DESCRIPTIONS = {
-    "Caries": "dental caries (tooth decay/cavities) requiring restorative treatment - may progress to pulpitis if untreated",
-    "Ulcer": "oral ulcer/lesion requiring clinical evaluation - monitor for healing, consider biopsy if persistent > 2 weeks",
-    "Tooth Discoloration": "tooth discoloration that may indicate trauma, decay, or systemic conditions",
-    "Gingivitis": "gingival inflammation indicating early periodontal disease - reversible with proper treatment",
-}
+YOLO_WEIGHTS = str(MODELS_ROOT / "yolo_v8x_base_1024/weights/best.pt")
+CLASSIFIER_WEIGHTS = str(MODELS_ROOT / "convnext_large_20260130_090637/weights/best.pt")
+DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+YOLO_CONF = 0.20
+CLASSIFIER_REFINE_CONF = 0.70
 
 SEVERITY_MAP = {
-    "Caries": "HIGH",
-    "Ulcer": "HIGH",
-    "Tooth Discoloration": "MODERATE",
-    "Gingivitis": "MODERATE",
+    "Decay": "HIGH",
+    "Apical Periodontitis": "HIGH",
+    "Missing Tooth": "MEDIUM",
+    "Wisdom Tooth": "LOW",
+    "Dental Filling": "LOW",
+    "Root Canal Filling": "LOW",
+    "Implant": "LOW",
+    "Porcelain Crown": "LOW",
+    "Ceramic Bridge": "LOW",
 }
 
-
-# ==================== MODELS ====================
-class Detection(BaseModel):
-    class_name: str
-    confidence: float
-    bbox: List[float]
-    description: str
-    severity: str
-
-
-class DiagnosisResult(BaseModel):
-    success: bool
-    timestamp: str
-    image_size: List[int]
-    num_detections: int
-    detections: List[Detection]
-    summary: str
-    findings: List[str]
-    recommendations: List[str]
-
-
-class TextDiagnosis(BaseModel):
-    success: bool
-    diagnosis_text: str
-
-
-# ==================== APP ====================
-app = FastAPI(
-    title="Oral Disease Detection API",
-    description="YOLO-based oral disease detection with LLM-ready output",
-    version="1.0.0",
-)
-
+app = FastAPI(title="Dental X-Ray Inference API", version="2.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -94,224 +57,154 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = None
+pipeline: Optional[DentalInferencePipeline] = None
 
 
-def load_model():
-    """Load YOLO model."""
-    global model
-    if model is None:
-        if not MODEL_PATH.exists():
-            raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
-        model = YOLO(str(MODEL_PATH))
-        model.to(DEVICE)
-        print(f"✓ Model loaded from {MODEL_PATH}")
-    return model
-
-
-def process_image(file_bytes: bytes) -> Image.Image:
-    """Process uploaded image."""
-    try:
-        image = Image.open(io.BytesIO(file_bytes))
-        if image.mode != "RGB":
-            image = image.convert("RGB")
-        return image
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid image: {e}")
-
-
-def run_detection(image: Image.Image) -> tuple:
-    """Run YOLO detection."""
-    model = load_model()
-    img_array = np.array(image)
-    
-    results = model(img_array, conf=CONFIDENCE_THRESHOLD, verbose=False)[0]
-    
-    detections = []
-    findings = []
-    
-    for box in results.boxes:
-        class_id = int(box.cls[0])
-        class_name = CLASS_NAMES[class_id] if class_id < len(CLASS_NAMES) else f"Class_{class_id}"
-        confidence = float(box.conf[0])
-        bbox = box.xyxy[0].tolist()
-        
-        detection = Detection(
-            class_name=class_name,
-            confidence=round(confidence, 4),
-            bbox=[round(b, 1) for b in bbox],
-            description=CLASS_DESCRIPTIONS.get(class_name, "Unknown finding"),
-            severity=SEVERITY_MAP.get(class_name, "UNKNOWN"),
-        )
-        detections.append(detection)
-        
-        finding = f"{class_name.upper()} detected ({confidence:.1%}) - {CLASS_DESCRIPTIONS.get(class_name, '')}"
-        findings.append(finding)
-    
-    return detections, findings, image.size
-
-
-def generate_summary(detections: List[Detection]) -> str:
-    """Generate summary text."""
-    if not detections:
-        return "No significant oral abnormalities detected."
-    
-    counts = {}
-    for d in detections:
-        counts[d.class_name] = counts.get(d.class_name, 0) + 1
-    
-    parts = [f"{count} {cls}" for cls, count in counts.items()]
-    return f"Detected: {', '.join(parts)}."
-
-
-def generate_recommendations(detections: List[Detection]) -> List[str]:
-    """Generate clinical recommendations."""
-    recommendations = []
-    
-    has_caries = any(d.class_name == "Caries" for d in detections)
-    has_ulcer = any(d.class_name == "Ulcer" for d in detections)
-    has_gingivitis = any(d.class_name == "Gingivitis" for d in detections)
-    has_discolor = any(d.class_name == "Tooth Discoloration" for d in detections)
-    
-    if has_caries:
-        recommendations.append("URGENT: Dental caries detected - schedule restorative dental appointment")
-        recommendations.append("Radiographic evaluation recommended to assess caries depth")
-        recommendations.append("Consider fluoride treatment and dietary counseling")
-    
-    if has_ulcer:
-        recommendations.append("Oral ulcer present - monitor for healing over 2 weeks")
-        recommendations.append("If persistent, biopsy recommended to rule out malignancy")
-        recommendations.append("Evaluate for systemic causes if recurrent")
-    
-    if has_gingivitis:
-        recommendations.append("Gingivitis detected - professional dental cleaning recommended")
-        recommendations.append("Improved oral hygiene instruction needed")
-        recommendations.append("Follow-up in 4-6 weeks to assess treatment response")
-    
-    if has_discolor:
-        recommendations.append("Tooth discoloration noted - determine if intrinsic or extrinsic")
-        recommendations.append("Vitality testing recommended for affected teeth")
-    
-    if not detections:
-        recommendations.append("No abnormalities detected - continue routine dental care")
-        recommendations.append("Regular dental check-ups every 6 months recommended")
-    
-    return recommendations
-
-
-# ==================== ENDPOINTS ====================
-@app.get("/")
-async def root():
-    return {
-        "name": "Oral Disease Detection API",
-        "version": "1.0.0",
-        "model": str(MODEL_PATH.name),
-        "classes": CLASS_NAMES,
-        "device": DEVICE,
-    }
+@app.on_event("startup")
+async def _load_models() -> None:
+    global pipeline
+    print("[oral-xray] Loading two-stage pipeline...")
+    pipeline = DentalInferencePipeline(
+        yolo_weights=YOLO_WEIGHTS,
+        classifier_weights=CLASSIFIER_WEIGHTS,
+        device=DEVICE,
+        yolo_conf=YOLO_CONF,
+        classifier_conf_threshold=CLASSIFIER_REFINE_CONF,
+        enable_refinement=True,
+    )
+    print("[oral-xray] Pipeline ready.")
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict:
+    return {
+        "status": "healthy" if pipeline is not None else "loading",
+        "model_loaded": pipeline is not None,
+        "device": DEVICE,
+        "yolo_classes": list(pipeline.yolo_class_names.values()) if pipeline else [],
+        "classifier_classes": list(pipeline.classifier_class_names) if pipeline else [],
+    }
+
+
+def _normalize_to_rgb(raw: Image.Image) -> Image.Image:
+    if raw.mode in ("I", "I;16", "I;16B", "I;16L", "F"):
+        arr = np.array(raw).astype(np.float32)
+        if arr.max() > arr.min():
+            arr = (arr - arr.min()) / (arr.max() - arr.min()) * 255.0
+        return Image.fromarray(arr.astype(np.uint8)).convert("RGB")
+    return raw.convert("RGB")
+
+
+def _draw_annotations(image: Image.Image, detections: List[dict]) -> str:
+    img = image.copy()
+    draw = ImageDraw.Draw(img)
+    img_w, img_h = img.size
+    min_side = max(1, min(img_w, img_h))
+    line_w = max(2, int(min_side * 0.003))
+    font_size = max(12, int(min_side * 0.018))
     try:
-        load_model()
-        return {"status": "healthy", "model_loaded": True}
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size
+        )
+    except Exception:
+        font = ImageFont.load_default()
+
+    palette = [
+        (255, 99, 99), (78, 205, 196), (69, 183, 209), (150, 206, 180),
+        (255, 234, 167), (221, 160, 221), (152, 216, 200), (247, 220, 111),
+        (187, 143, 206), (133, 193, 233),
+    ]
+
+    for idx, det in enumerate(detections):
+        x1, y1, x2, y2 = [float(v) for v in det["bbox"]]
+        color = palette[idx % len(palette)]
+        draw.rectangle([x1, y1, x2, y2], outline=color, width=line_w)
+
+        label = f"{det['class_name']} {det['confidence'] * 100:.0f}%"
+        text_bbox = draw.textbbox((x1, y1), label, font=font)
+        tw = text_bbox[2] - text_bbox[0]
+        th = text_bbox[3] - text_bbox[1]
+        ty = max(0, y1 - th - 4)
+        draw.rectangle([x1, ty, x1 + tw + 6, ty + th + 4], fill=color)
+        draw.text((x1 + 3, ty + 1), label, fill="white", font=font)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=92)
+    return base64.b64encode(buf.getvalue()).decode()
 
 
-@app.post("/predict", response_model=DiagnosisResult)
-async def predict(file: UploadFile = File(...)):
-    """Detect oral diseases and return structured JSON."""
-    contents = await file.read()
-    image = process_image(contents)
-    
-    detections, findings, img_size = run_detection(image)
-    summary = generate_summary(detections)
-    recommendations = generate_recommendations(detections)
-    
-    return DiagnosisResult(
-        success=True,
-        timestamp=datetime.now().isoformat(),
-        image_size=list(img_size),
-        num_detections=len(detections),
-        detections=detections,
-        summary=summary,
-        findings=findings,
-        recommendations=recommendations,
-    )
+def _serialize(result) -> List[dict]:
+    out = []
+    for d in result.detections:
+        if d.refined_class_name and d.refined_confidence is not None and (
+            d.was_refined or d.refined_confidence >= CLASSIFIER_REFINE_CONF
+        ):
+            cls = d.refined_class_name
+            conf = float(d.refined_confidence)
+        else:
+            cls = d.class_name
+            conf = float(d.confidence)
 
-
-@app.post("/predict_text", response_model=TextDiagnosis)
-async def predict_text(file: UploadFile = File(...)):
-    """Return plain text diagnosis for LLM input."""
-    contents = await file.read()
-    image = process_image(contents)
-    
-    detections, findings, img_size = run_detection(image)
-    summary = generate_summary(detections)
-    recommendations = generate_recommendations(detections)
-    
-    text = "# ORAL DISEASE AI DETECTION REPORT\n\n"
-    text += f"Timestamp: {datetime.now().isoformat()}\n"
-    text += f"Image: {img_size[0]}x{img_size[1]} pixels\n\n"
-    
-    text += "## SUMMARY\n"
-    text += f"{summary}\n\n"
-    
-    text += "## DETAILED FINDINGS\n"
-    if findings:
-        for i, finding in enumerate(findings, 1):
-            text += f"{i}. {finding}\n"
-    else:
-        text += "No significant abnormalities detected.\n"
-    
-    text += "\n## RECOMMENDATIONS\n"
-    for i, rec in enumerate(recommendations, 1):
-        text += f"{i}. {rec}\n"
-    
-    text += "\n---\n"
-    text += "Note: AI analysis should be reviewed by a qualified dental professional.\n"
-    
-    return TextDiagnosis(success=True, diagnosis_text=text)
+        x1, y1, x2, y2 = [float(v) for v in d.bbox]
+        out.append({
+            "class_name": cls,
+            "confidence": conf,
+            "bbox": [x1, y1, x2, y2],
+            "severity": SEVERITY_MAP.get(cls, "UNKNOWN"),
+            "yolo_class": d.class_name,
+            "yolo_confidence": float(d.confidence),
+            "was_refined": bool(d.was_refined),
+        })
+    return out
 
 
 @app.post("/predict_for_llm")
 async def predict_for_llm(file: UploadFile = File(...)):
-    """Return LLM-optimized JSON for report generation."""
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    if not (file.content_type or "").startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
     contents = await file.read()
-    image = process_image(contents)
-    
-    detections, findings, img_size = run_detection(image)
-    
+    raw = Image.open(io.BytesIO(contents))
+    image = _normalize_to_rgb(raw)
+
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+        image.save(tmp.name, quality=95)
+        tmp_path = tmp.name
+
+    try:
+        result = pipeline.predict(tmp_path)
+    finally:
+        try:
+            Path(tmp_path).unlink()
+        except Exception:
+            pass
+
+    detections = _serialize(result)
+    annotated_b64 = None
+    try:
+        annotated_b64 = _draw_annotations(image, detections)
+    except Exception as render_error:
+        print(f"[oral-xray] render error: {render_error}")
+
+    findings = {}
+    for d in detections:
+        findings.setdefault(d["class_name"], []).append(d["confidence"])
+    summary_lines = []
+    for cls, confs in sorted(findings.items(), key=lambda x: max(x[1]), reverse=True):
+        summary_lines.append(f"{cls}: {len(confs)} occurrence(s), max conf {max(confs):.2f}")
+
     return {
-        "patient_context": "Oral/dental examination image analysis",
-        "modality": "Intraoral photograph",
-        "body_part": "Oral cavity",
-        "ai_findings": [
-            {
-                "finding": d.class_name,
-                "location": f"bbox {d.bbox}",
-                "confidence": f"{d.confidence:.1%}",
-                "severity": d.severity,
-                "clinical_meaning": CLASS_DESCRIPTIONS.get(d.class_name, "Unknown"),
-            }
-            for d in detections
-        ],
-        "conditions_detected": {
-            "caries": any(d.class_name == "Caries" for d in detections),
-            "ulcer": any(d.class_name == "Ulcer" for d in detections),
-            "gingivitis": any(d.class_name == "Gingivitis" for d in detections),
-            "discoloration": any(d.class_name == "Tooth Discoloration" for d in detections),
-        },
-        "urgency": "HIGH" if any(d.severity == "HIGH" for d in detections) else "ROUTINE",
-        "summary": generate_summary(detections),
-        "recommendations": generate_recommendations(detections),
-        "timestamp": datetime.now().isoformat(),
+        "success": True,
+        "modality": "dental_xray",
+        "num_detections": len(detections),
+        "detections": detections,
+        "annotated_image_base64": annotated_b64,
+        "summary": "; ".join(summary_lines) if summary_lines else "No findings.",
+        "timing_ms": round(result.total_time_ms, 2),
     }
 
 
 if __name__ == "__main__":
-    import uvicorn
-    print("Starting Oral Disease Detection API...")
     uvicorn.run(app, host="0.0.0.0", port=8002)
