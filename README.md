@@ -27,6 +27,10 @@ ClinIQ AI is not a single-model demo - it is a **complete, production-oriented A
 | `chest_xray`          | Thoracic disease classification + GradCAM   | 🟢 Active     |
 | `prescription-parser` | VLM-based handwritten parsing (Qwen2-VL)    | 🆕 New        |
 | `prescription_ocr`    | OCR/NLP legacy pipeline                     | 🟡 Maintained |
+| `messaging`           | Pluggable Redis/RabbitMQ async job queue    | 🆕 New        |
+| `triage`              | Severity worklist + prediction audit trail  | 🆕 New        |
+
+> 🚀 **New here? Start with [SETUP.md](SETUP.md)** — a step-by-step fresh-clone → running-platform guide.
 
 ---
 
@@ -59,6 +63,21 @@ ClinIQ AI is not a single-model demo - it is a **complete, production-oriented A
 * Automatic routing based on scan modality
 * Unified response schema across services
 * Dedicated prescription parsing API
+
+---
+
+### 📨 Async Job Queue + Triage Worklist + Audit Trail
+
+* **Pluggable broker** (`messaging/`): Redis Streams or RabbitMQ, chosen by
+  `QUEUE_BACKEND` (opt-in — services stay HTTP-only when unset)
+* **Every service is also a worker**: consumes `cliniq:jobs:<modality>`, publishes
+  to `cliniq:results` — lets an external backend (e.g. .NET) submit jobs async
+* **Triage worklist** (`triage/`, port 8010): ranks cases by severity so critical
+  findings surface first (inspired by Aidoc/Qure.ai triage)
+* **Audit trail**: every prediction logged with its **model version** + input
+  **sha256** for full traceability
+* See [docs/QUEUE_INTEGRATION.md](docs/QUEUE_INTEGRATION.md) (backend contract +
+  C# examples) and [triage/README.md](triage/README.md)
 
 ---
 
@@ -106,6 +125,12 @@ graph TD
     Router --> Chest[Chest X-ray :8003]
     Router --> OralC[Oral Classify :8004]
     Router --> Rx[Prescription Parser :8005]
+
+    Backend[External Backend .NET] -->|job| Q([Redis / RabbitMQ])
+    Q -->|job| Bone
+    Bone -->|result| R([cliniq:results])
+    R -->|result| Backend
+    R --> Triage[Triage Worklist :8010<br/>severity ranking + audit]
 ```
 
 ---
@@ -120,6 +145,7 @@ graph TD
 | chest_xray          | 8003 | `/predict_for_llm`                      |
 | oral-classify       | 8004 | `/predict_for_llm`                      |
 | prescription-parser | 8005 | `/predict_for_llm`, `/parse`, `/status` |
+| triage worklist     | 8010 | `/`, `/worklist`, `/audit/stats`        |
 
 ---
 
@@ -172,6 +198,17 @@ cd chatbot-app && python app.py
 ```
 
 👉 [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
+**Optional — async queue + triage worklist:**
+
+```bash
+export QUEUE_BACKEND=redis
+export REDIS_CONNECTION='your-host:6379,password=YOUR_TOKEN,ssl=true'
+# restart the services above (each now also consumes its job queue), then:
+cd triage && python app.py        # http://localhost:8010
+```
+
+Full step-by-step setup: [SETUP.md](SETUP.md).
 
 ---
 

@@ -55,6 +55,10 @@ logs/
 
 # Runtime local databases
 chatbot-app/data/chat_history.db
+# Audit + triage worklist databases (generated at runtime)
+data/audit.db
+data/triage.db
+data/*.db
 
 # Local backup artifacts
 *.bak

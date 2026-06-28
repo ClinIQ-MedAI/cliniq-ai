@@ -143,5 +143,21 @@ async def predict_for_llm(file: UploadFile = File(...)) -> Dict[str, Any]:
     }
 
 
+# ==================== ASYNC QUEUE WORKER (opt-in) ====================
+# Consumes `cliniq:jobs:prescription` and publishes to `cliniq:results` when
+# QUEUE_BACKEND is set. Reuses predict_for_llm. No-op otherwise.
+import sys as _sys
+
+_CLINIQ_ROOT = Path(__file__).resolve().parents[2]
+if str(_CLINIQ_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_CLINIQ_ROOT))
+try:
+    from messaging.fastapi_integration import attach_worker
+
+    attach_worker(app, modality="prescription", route=predict_for_llm)
+except Exception as _queue_exc:  # noqa: BLE001
+    print(f"[prescription-parser] queue worker not attached: {_queue_exc}")
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8005, log_level="info")

@@ -543,6 +543,24 @@ async def predict_for_llm_arabic(file: UploadFile = File(...)):
     }
 
 
+# ==================== ASYNC QUEUE WORKER (opt-in) ====================
+# When QUEUE_BACKEND=redis|rabbitmq, this service also consumes jobs from
+# `cliniq:jobs:bone` and publishes results to `cliniq:results`, reusing the
+# predict_for_llm route as the inference function. No-op when unset.
+import sys as _sys
+from pathlib import Path as _Path
+
+_CLINIQ_ROOT = _Path(__file__).resolve().parents[2]
+if str(_CLINIQ_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_CLINIQ_ROOT))
+try:
+    from messaging.fastapi_integration import attach_worker
+
+    attach_worker(app, modality="bone", route=predict_for_llm)
+except Exception as _queue_exc:  # noqa: BLE001
+    print(f"[bone-detect] queue worker not attached: {_queue_exc}")
+
+
 # ==================== RUN ====================
 if __name__ == "__main__":
     import uvicorn

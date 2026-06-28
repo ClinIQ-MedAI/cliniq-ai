@@ -1,0 +1,7 @@
+# ClinIQ messaging layer dependencies.
+# Install in each inference service's environment that should act as a worker:
+#   pip install -r messaging/requirements.txt
+
+redis>=5.0        # Redis Streams broker (works with Upstash over TLS)
+pika>=1.3         # RabbitMQ (AMQP) broker
+requests>=2.28    # optional: only needed when jobs use image_url instead of image_base64
