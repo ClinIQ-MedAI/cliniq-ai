@@ -3,7 +3,7 @@
     "id": 1,
     "patient_name": "ahmed",
     "doctor_id": 1,
-    "date": "Thursday",
+    "day": "Thursday",
     "time": "10:00",
     "booked_at": "2026-01-31T18:51:13.598098"
   },
@@ -11,7 +11,7 @@
     "id": 2,
     "patient_name": "mowafy",
     "doctor_id": 2,
-    "date": "Friday",
+    "day": "Friday",
     "time": "15:00",
     "booked_at": "2026-01-31T18:55:30.948212"
   },
@@ -19,7 +19,7 @@
     "id": 3,
     "patient_name": "mowafy",
     "doctor_id": 3,
-    "date": "Thursday",
+    "day": "Thursday",
     "time": "14:00",
     "booked_at": "2026-01-31T19:23:14.511213"
   },
@@ -27,7 +27,7 @@
     "id": 4,
     "patient_name": "zalata",
     "doctor_id": 1,
-    "date": "Thursday",
+    "day": "Thursday",
     "time": "11:00",
     "booked_at": "2026-01-31T19:36:13.014720"
   },
@@ -35,7 +35,7 @@
     "id": 5,
     "patient_name": "Faris",
     "doctor_id": 2,
-    "date": "Thursday",
+    "day": "Thursday",
     "time": "09:00",
     "booked_at": "2026-01-31T22:54:34.811099"
   },
@@ -43,7 +43,7 @@
     "id": 6,
     "patient_name": "firi",
     "doctor_id": 2,
-    "date": "Thursday",
+    "day": "Thursday",
     "time": "09:00",
     "booked_at": "2026-01-31T23:33:42.446131"
   },
@@ -52,7 +52,7 @@
     "patient_id": "patient_8zsryxa7z",
     "patient_name": "\u0641\u0627\u0631\u0633",
     "doctor_id": 1,
-    "date": "Tuesday",
+    "day": "Tuesday",
     "time": "09:00",
     "booked_at": "2026-02-06T13:14:51.148307"
   },
@@ -61,7 +61,7 @@
     "patient_id": "patient_qu60pae9vmohb9obo",
     "patient_name": "fares nagy",
     "doctor_id": 2,
-    "date": "Monday",
+    "day": "Monday",
     "time": "11:00",
     "booked_at": "2026-04-27T10:53:48.799151"
   },
@@ -70,7 +70,7 @@
     "patient_id": "patient_bbyr4nzo7mohbxr8h",
     "patient_name": "fares nagy",
     "doctor_id": 1,
-    "date": "Monday",
+    "day": "Monday",
     "time": "09:00",
     "booked_at": "2026-04-27T11:09:21.586261"
   },
@@ -79,8 +79,19 @@
     "patient_id": "patient_bosbxf8humohdwd9i",
     "patient_name": "fares nagy",
     "doctor_id": 1,
-    "date": "Monday",
+    "day": "Monday",
     "time": "09:00",
     "booked_at": "2026-04-27T12:01:21.340186"
+  },
+  {
+    "id": "cec2932e-9b41-4c61-8e9d-dc1e2edafdad",
+    "patient_id": "patient_ni6t3sgtj",
+    "patient_name": "t",
+    "doctor_id": 3,
+    "doctor_name": "Dr. Emma Rodriguez",
+    "day": "Thursday",
+    "time": "16:00",
+    "status": "confirmed",
+    "created_at": "2026-07-03T15:39:19.812089"
   }
 ]

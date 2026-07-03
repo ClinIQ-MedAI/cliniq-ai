@@ -609,7 +609,12 @@ async function uploadFile(attachedMessage = '') {
 
     // Get selected image type (dental, bone, or chest)
     const imageTypeInput = document.querySelector('input[name="imageType"]:checked');
-    const imageType = imageTypeInput ? imageTypeInput.value : 'dental_xray';
+    if (fileToUpload.type.startsWith('image/') && !imageTypeInput) {
+        showToast('Please select image type / الرجاء اختيار نوع الصورة');
+        setLoadingState(false);
+        return null;
+    }
+    const imageType = imageTypeInput ? imageTypeInput.value : 'pdf_report';
     formData.append('image_type', imageType);
 
     // Show uploading message with correct label and image preview
@@ -817,14 +822,22 @@ function sendMessage(event) {
     getResponse(message);
 }
 
+function safeRender(text, element) {
+    element.textContent = '';
+    String(text || '').split('\n').forEach((line, i, arr) => {
+        element.appendChild(document.createTextNode(line));
+        if (i < arr.length - 1) element.appendChild(document.createElement('br'));
+    });
+}
+
 function addMessage(text, sender) {
     const chatMessages = document.getElementById('chatMessages');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}-message`;
 
     const p = document.createElement('p');
-    // Preserve line breaks
-    p.innerHTML = text.replace(/\n/g, '<br>');
+    // Preserve line breaks safely
+    safeRender(text, p);
     messageDiv.appendChild(p);
 
     chatMessages.appendChild(messageDiv);
@@ -886,14 +899,14 @@ async function getResponse(userMessage) {
 
                     if (payload.chunk) {
                         fullText += payload.chunk;
-                        p.innerHTML = fullText.replace(/\n/g, '<br>');
+                        safeRender(fullText, p);
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
 
                     if (payload.done) {
                         if (payload.response) {
                             fullText = payload.response;
-                            p.innerHTML = fullText.replace(/\n/g, '<br>');
+                            safeRender(fullText, p);
                         }
                         queryType = payload.query_type || '';
                     }
@@ -902,7 +915,7 @@ async function getResponse(userMessage) {
         } else {
             const data = await response.json();
             fullText = data.response || data.message || '';
-            p.innerHTML = fullText.replace(/\n/g, '<br>');
+            safeRender(fullText, p);
             queryType = data.query_type || '';
         }
 
