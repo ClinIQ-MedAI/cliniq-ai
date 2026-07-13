@@ -1,0 +1,57 @@
+# ClinIQ AI Platform — core dependencies (shared by all services except the
+# prescription-parser VLM stack, which has its own heavy requirements file).
+#
+#   pip install -r requirements.txt
+#
+# A CUDA-capable GPU is recommended. Install the torch build matching your CUDA
+# from https://pytorch.org if the default wheel doesn't match your driver.
+
+# --- deep learning ---
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.1.0          # YOLO (bone-detect, oral-xray detector)
+timm>=0.9.0                 # ConvNeXt backbones (chest, oral-classify, oral-xray refiner)
+grad-cam>=1.5.0             # GradCAM / GradCAM++ explainability (chest, oral-classify)
+
+# --- imaging / data ---
+numpy>=1.24.0
+Pillow>=9.0.0
+opencv-python>=4.8.0
+scikit-image>=0.21.0
+scikit-learn>=1.2.0
+albumentations>=1.3.0       # chest x-ray augmentations / CLAHE
+matplotlib>=3.7.0
+tqdm>=4.65.0
+
+# --- DICOM support (imaging/) — radiology scans arrive as .dcm ---
+pydicom>=2.4.0              # DICOM parsing + windowing (VOI/Modality LUT)
+pylibjpeg>=2.0             # decoders for compressed DICOM (JPEG/JPEG2000)
+pylibjpeg-libjpeg>=2.0     # JPEG / JPEG-LS / lossless transfer syntaxes
+
+# --- inference API services (FastAPI, ports 8001-8004, 8010) ---
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+pydantic>=2.0.0
+
+# --- chatbot gateway (Flask, port 5000) ---
+flask>=3.0.0
+werkzeug>=3.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+pdfplumber>=0.10.0          # PDF report ingestion
+
+# --- async job queue + triage worklist (Redis/RabbitMQ) ---
+redis>=5.0                  # Redis Streams broker + triage consumer
+pika>=1.3                   # RabbitMQ broker (optional alternative)
+
+# --- local LLM fallback (optional, LOCAL_LLM_FALLBACK=1) ---
+# LiteLLM proxy adds model-group fallback in front of the chatbot's LLM gateway:
+# if the upstream (llm.jetstream-cloud.org) is down, it retries against a free,
+# local Ollama model automatically. Ollama itself is a native binary, not a pip
+# package — see docs/LOCAL_LLM_FALLBACK.md.
+litellm[proxy]>=1.55.0
+
+# NOTE: the prescription-parser service additionally needs the VLM stack
+# (vllm, transformers, autoawq, rapidfuzz, ...). Install it only on the GPU
+# machine that runs it:  pip install -r prescription-parser/requirements.txt

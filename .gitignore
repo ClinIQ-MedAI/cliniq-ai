@@ -1,0 +1,75 @@
+# Virtual environment
+cliniq_env/
+venv/
+.env/
+env/
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Model weights
+*.pt
+*.pth
+*.onnx
+models/
+
+# Dataset images (large files)
+wrest/data/graz/images/
+wrest/data/graz/labels/
+wrest/data/graz/detection/images/
+wrest/data/graz/detection/labels/
+**/dataset/
+**/dataset_clean/
+**/oral_yolo_dataset/
+**/data/raw/
+**/data/processed/
+
+# YOLO runs/training outputs
+runs/
+**/runs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.pid
+logs/
+
+# Runtime local databases
+chatbot-app/data/chat_history.db
+# Audit + triage worklist databases (generated at runtime)
+data/audit.db
+data/triage.db
+data/*.db
+
+# Local backup artifacts
+*.bak
+
+# Local LLM fallback (portable Ollama install + downloaded model blobs, ~4GB)
+.local/
+
+# Legacy/Other
+/AV-Detection
+/Diffusion
+/OralXrays-9
+/annotations
+notes.txt
+llm-gateway/config.shared.yaml
