@@ -1,0 +1,81 @@
+# Chest X-ray Multi-Label Classification Configuration
+
+# Data paths
+data:
+  root_dir: "/N/scratch/moabouag/cliniq/data/chest"
+  train_list: "train_val_list.txt"
+  test_list: "test_list.txt"
+  labels_file: "Data_Entry_2017.csv"
+  image_dirs:
+    - "images_001/images"
+    - "images_002/images"
+    - "images_003/images"
+    - "images_004/images"
+    - "images_005/images"
+    - "images_006/images"
+    - "images_007/images"
+    - "images_008/images"
+    - "images_009/images"
+    - "images_010/images"
+    - "images_011/images"
+    - "images_012/images"
+
+# Classes
+classes:
+  - "Atelectasis"
+  - "Cardiomegaly"
+  - "Consolidation"
+  - "Edema"
+  - "Effusion"
+  - "Emphysema"
+  - "Fibrosis"
+  - "Hernia"
+  - "Infiltration"
+  - "Mass"
+  - "Nodule"
+  - "Pleural_Thickening"
+  - "Pneumonia"
+  - "Pneumothorax"
+
+# Model
+model:
+  name: "densenet121"  # densenet121, convnext_base, efficientnet_b4
+  pretrained: true
+  num_classes: 14
+  dropout: 0.2
+
+# Training
+training:
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  scheduler: "cosine"  # step, cosine, plateau
+  early_stopping_patience: 10
+
+# Data augmentation
+augmentation:
+  image_size: 224
+  random_crop: true
+  horizontal_flip: true
+  rotation: 10
+  brightness: 0.1
+  contrast: 0.1
+
+# Loss
+loss:
+  name: "bce"  # bce, focal, weighted_bce
+  use_class_weights: true
+
+# Output paths
+output:
+  checkpoint_dir: "outputs/checkpoints"
+  log_dir: "outputs/logs"
+  predictions_dir: "outputs/predictions"
+
+# Hardware
+hardware:
+  device: "cuda"
+  num_workers: 8
+  pin_memory: true
+  mixed_precision: true
