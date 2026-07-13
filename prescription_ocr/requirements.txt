@@ -1,0 +1,25 @@
+# ClinIQ - Prescription OCR Requirements
+# =====================================
+
+# Core Dependencies
+numpy>=1.21.0
+opencv-python>=4.5.0
+
+# OCR Engines
+easyocr>=1.7.0         # EasyOCR - recommended for Arabic (better RTL handling)
+paddlepaddle>=2.4.0    # PaddlePaddle (fallback OCR backend)
+paddleocr>=2.6.0       # PaddleOCR (fallback OCR backend)
+
+# NLP / Text Processing
+rapidfuzz>=2.0.0       # Fuzzy string matching for drug name correction
+requests>=2.28.0       # For LLM API calls
+
+# Optional: For Streamlit demo
+# streamlit>=1.20.0
+
+# Optional: For GPU acceleration
+# torch (for EasyOCR GPU support)
+# paddlepaddle-gpu>=2.4.0
+
+# Configuration
+python-dotenv>=1.0.0

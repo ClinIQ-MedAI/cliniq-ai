@@ -1,0 +1,8 @@
+# TrOCR Fine-tuning Requirements
+transformers>=4.30.0
+datasets>=2.14.0
+evaluate>=0.4.0
+pillow>=9.0.0
+torch>=2.0.0
+accelerate>=0.21.0
+jiwer  # For CER metric
