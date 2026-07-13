@@ -29,6 +29,10 @@ ClinIQ AI is not a single-model demo - it is a **complete, production-oriented A
 | `prescription_ocr`    | OCR/NLP legacy pipeline                     | 🟡 Maintained |
 | `messaging`           | Pluggable Redis/RabbitMQ async job queue    | 🆕 New        |
 | `triage`              | Severity worklist + prediction audit trail  | 🆕 New        |
+| `imaging`             | Input gate (OOD screening) + DICOM handling | 🆕 New        |
+| `rag`                 | Retrieval-augmented grounding (FAISS)       | 🆕 New        |
+| `qstash-gateway`      | Public HTTP face (QStash <-> services)      | 🆕 New        |
+| `llm-gateway`         | LiteLLM proxy config (cloud + local)        | 🟢 Active     |
 
 > 🚀 **New here? Start with [SETUP.md](SETUP.md)** — a step-by-step fresh-clone → running-platform guide.
 
@@ -45,6 +49,21 @@ ClinIQ AI is not a single-model demo - it is a **complete, production-oriented A
 * Annotated medical outputs inside chat
 * Appointment booking with queue tracking
 * Chat export + copy features
+
+### 🛡️ Safety & Trust
+
+* **Input gate (OOD screening)** — every upload is screened *before* any
+  model runs (`imaging/gate.py`). A colour selfie sent as a bone X-ray, a
+  blank frame, or a screenshot is **rejected with a reason** instead of being
+  confidently scored. Training-free and conservative: it only rejects what it
+  is confident is wrong (grayscale check for X-rays, blank / extreme-aspect /
+  too-small checks).
+* **Explainability** — detection models return the bounding box; classifiers
+  return a Grad-CAM heat map, so a clinician can see *why*.
+* **Accountability** — every finding is stored with the image hash and the
+  model checkpoint that produced it.
+* **Critical escalation** — urgent findings raise an alert to the triage
+  worklist immediately.
 
 ---
 
