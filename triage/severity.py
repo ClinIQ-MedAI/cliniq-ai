@@ -21,6 +21,7 @@ _LEVEL_BASE = {
     "LOW": 20,
     "INFO": 10,
     "ROUTINE": 10,
+    "REJECTED": 8,   # input rejected by the OOD/quality gate — not a finding
     "UNKNOWN": 5,
 }
 
@@ -132,6 +133,11 @@ def priority_of(result: Optional[Dict[str, Any]], status: str = "completed") -> 
     """
     if status != "completed" or not result:
         return 15, "INFO"
+
+    # Inputs the OOD/quality gate refused: not a clinical finding, so park them
+    # low (they don't clog the worklist) while staying visible and filterable.
+    if result.get("input_rejected"):
+        return _LEVEL_BASE["REJECTED"], "REJECTED"
 
     levels = _iter_severities(result)
     score = max((_LEVEL_BASE.get(l, 5) for l in levels), default=_LEVEL_BASE["ROUTINE"])

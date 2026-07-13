@@ -1,7 +1,0 @@
-torch
-torchvision
-pillow
-matplotlib
-pandas
-gdown
-tqdm

@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -54,6 +55,9 @@ def _cmd_enqueue(args) -> int:
         image_b64 = base64.b64encode(fh.read()).decode()
 
     options = json.loads(args.options) if args.options else {}
+    # Pass the filename so the worker can recognise .dcm/.dicom uploads even
+    # when a DICOM stream omits its magic-byte preamble.
+    options.setdefault("filename", os.path.basename(args.image))
     job = JobMessage(
         modality=args.modality,
         image_base64=image_b64,

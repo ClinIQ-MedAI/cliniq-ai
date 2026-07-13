@@ -1,0 +1,92 @@
+[
+  {
+    "text": "# Wrist and Bone Fracture — Patient Guidance / إرشادات كسور المعصم والعظام\n\n## What a fracture means\nA fracture is a break in a bone. On a wrist X-ray the AI may flag a **fracture**,\n**surgical metal** (a plate or screw from a previous operation), or a\n**periosteal reaction** (a sign the bone is healing or reacting to a process).\nPediatric wrist fractures are among the most common childhood injuries, often\nfrom a fall onto an outstretched hand.\n\n## Common signs\nPain that worsens with movement, swelling, bruising, tenderness over the bone,\nreduced grip strength, or a visible deformity. Not every fracture is obvious;\nsome hairline fractures are only visible on imaging.",
+    "source": "bone_fracture_care.md",
+    "title": "Wrist and Bone Fracture — Patient Guidance / إرشادات كسور المعصم والعظام"
+  },
+  {
+    "text": "## What to do\n- Immobilize the area and avoid using it.\n- Apply a cold pack (wrapped, not directly on skin) for swelling.\n- Seek an orthopedic evaluation — a confirmed fracture usually needs a splint or\n  cast, and displaced fractures may need reduction.\n- Follow-up imaging checks that the bone is healing in good alignment.\n\n## Red flags — seek urgent care\nNumbness or tingling below the injury, a cold or pale hand, an open wound over\nthe bone, or severe deformity. These can signal nerve or blood-vessel\ninvolvement and need immediate attention.",
+    "source": "bone_fracture_care.md",
+    "title": "Wrist and Bone Fracture — Patient Guidance / إرشادات كسور المعصم والعظام"
+  },
+  {
+    "text": "## بالعربية (ملخص)\nالكسر هو انكسار في العظم. أشعة المعصم قد تُظهر كسرًا، أو معدنًا جراحيًا من عملية\nسابقة، أو تفاعل السمحاق (علامة على التئام العظم). العلامات الشائعة: ألم يزداد مع\nالحركة، تورّم، كدمات. الأهم: ثبّت المكان، ضع كمادة باردة، واستشر أخصائي عظام.\nاطلب رعاية عاجلة فورًا عند وجود تنميل، أو برودة/شحوب في اليد، أو جرح مفتوح فوق\nالعظم، أو تشوّه شديد.\n\n> This is general education, not a diagnosis. A qualified clinician must review\n> any imaging finding.",
+    "source": "bone_fracture_care.md",
+    "title": "Wrist and Bone Fracture — Patient Guidance / إرشادات كسور المعصم والعظام"
+  },
+  {
+    "text": "# Chest X-ray Findings — Patient Guidance / إرشادات نتائج أشعة الصدر\n\n## What a chest X-ray shows\nA chest X-ray images the lungs, heart, and chest wall. The AI screens for common\nfindings and flags them for a radiologist to confirm. It is a screening aid, not\na final diagnosis.",
+    "source": "chest_xray_findings.md",
+    "title": "Chest X-ray Findings — Patient Guidance / إرشادات نتائج أشعة الصدر"
+  },
+  {
+    "text": "## Common findings explained\n- **Consolidation / infiltrate:** a hazy white area where air-filled lung has\n  filled with fluid, pus, or cells — often **pneumonia** (a lung infection).\n- **Pleural effusion:** fluid collecting between the lung and chest wall; can\n  cause breathlessness.\n- **Cardiomegaly:** the heart looks enlarged; may relate to blood pressure or\n  heart conditions and needs cardiology follow-up.\n- **Atelectasis:** a collapsed or partially collapsed area of lung.\n- **Pneumothorax:** air in the space around the lung, which can make it collapse\n  — this is urgent.\n- **Nodule / mass:** a spot that needs further imaging to characterize.\n\n## Why screening matters\nCatching pneumonia, effusions, or an enlarged heart early lets treatment start\nsooner, when it is most effective. Many findings are treatable when found early.",
+    "source": "chest_xray_findings.md",
+    "title": "Chest X-ray Findings — Patient Guidance / إرشادات نتائج أشعة الصدر"
+  },
+  {
+    "text": "## Red flags — seek urgent care\nSevere shortness of breath, chest pain, blue lips or fingertips, coughing up\nblood, or a high fever with difficulty breathing.\n\n## بالعربية (ملخص)\nأشعة الصدر تصوّر الرئتين والقلب وجدار الصدر. من أهم النتائج: **التصلّب/الارتشاح**\n(غالبًا التهاب رئوي)، **الانصباب الجنبي** (سائل حول الرئة)، **تضخّم القلب**،\nو**استرواح الصدر (Pneumothorax)** وهو حالة عاجلة. الفحص المبكر يسمح ببدء العلاج\nفي وقت مبكر. اطلب رعاية عاجلة عند ضيق تنفّس شديد، ألم بالصدر، ازرقاق الشفاه، أو\nسعال مصحوب بدم.\n\n> Imaging findings must be confirmed by a radiologist and correlated with the\n> patient's symptoms.",
+    "source": "chest_xray_findings.md",
+    "title": "Chest X-ray Findings — Patient Guidance / إرشادات نتائج أشعة الصدر"
+  },
+  {
+    "text": "# ClinIQ Platform — How It Works & FAQ / كيف تعمل المنصة والأسئلة الشائعة\n\n## What ClinIQ does\nClinIQ is a bilingual (Arabic/English) medical AI assistant. You can:\n- Upload a medical scan (bone X-ray, chest X-ray, dental X-ray or photo) or a\n  prescription, and get an AI-assisted, easy-to-understand explanation.\n- Chat with the assistant about general health questions.\n- Book an appointment with a doctor in the relevant specialty.",
+    "source": "clinic_faq.md",
+    "title": "ClinIQ Platform — How It Works & FAQ / كيف تعمل المنصة والأسئلة الشائعة"
+  },
+  {
+    "text": "## How the scan analysis works\nEach scan type is routed to a dedicated AI model:\n- **Bone X-ray →** fracture detection.\n- **Chest X-ray →** multi-disease screening with a visual heat-map (Grad-CAM).\n- **Dental X-ray / photo →** decay and gum-condition screening.\n- **Prescription →** handwriting-to-text extraction of drug names and doses.\nCritical findings are ranked first on a triage worklist so urgent cases surface\nquickly, and every AI prediction is logged with its model version for\ntraceability.\n\n## Booking an appointment\nTell the assistant you want to book, choose a doctor and an available time slot,\nand you will get a confirmation plus your position in that slot's queue. The AI\nscan result can be attached so the doctor sees it before your visit.",
+    "source": "clinic_faq.md",
+    "title": "ClinIQ Platform — How It Works & FAQ / كيف تعمل المنصة والأسئلة الشائعة"
+  },
+  {
+    "text": "## Is this a diagnosis?\nNo. ClinIQ is a **screening and information aid**. Every AI result must be\nreviewed by a qualified clinician. The AI can miss findings or flag things that\nturn out to be normal. Always follow your doctor's advice, and seek urgent care\nfor severe or worsening symptoms.\n\n## Privacy\nUploads are processed to produce your result. Do not upload other people's\nrecords. Share only what is needed for your care.\n\n## بالعربية (ملخص)\nClinIQ مساعد طبي ذكي ثنائي اللغة. تقدر ترفع أشعة (عظام، صدر، أسنان) أو روشتة وتاخد\nشرحًا مبسّطًا بمساعدة الذكاء الاصطناعي، أو تدردش في أسئلة صحية عامة، أو تحجز مع\nدكتور في التخصّص المناسب. كل نوع أشعة يُوجَّه لموديل مخصّص، والحالات الحرجة تترتّب\nأولًا في قائمة الفرز. **دي أداة مساعدة للفحص والتوعية وليست تشخيصًا** — لازم طبيب\nمؤهّل يراجع أي نتيجة، واطلب رعاية عاجلة عند الأعراض الشديدة.",
+    "source": "clinic_faq.md",
+    "title": "ClinIQ Platform — How It Works & FAQ / كيف تعمل المنصة والأسئلة الشائعة"
+  },
+  {
+    "text": "# Dental Findings & Oral Care — Patient Guidance / إرشادات صحة الأسنان\n\n## What dental imaging and photos show\nPanoramic and intraoral X-rays reveal **caries (tooth decay)**, bone loss, and\nthe position of teeth; intraoral photographs help assess **gingivitis (gum\ninflammation)**, ulcers, discoloration, and visible decay. The AI highlights\nsuspicious areas for a dentist to confirm.\n\n## Caries (tooth decay)\nDecay is caused by acid from plaque bacteria dissolving enamel. Early decay may\ncause no pain; later it causes sensitivity to hot/cold/sweet, then toothache.\nEarly caries can be arrested with fluoride and better hygiene; cavities need a\nfilling. Untreated decay can reach the nerve and cause infection.",
+    "source": "dental_care.md",
+    "title": "Dental Findings & Oral Care — Patient Guidance / إرشادات صحة الأسنان"
+  },
+  {
+    "text": "## Gingivitis (gum inflammation)\nRed, swollen gums that bleed when brushing. It is reversible with good plaque\ncontrol — brushing twice daily, flossing, and a professional cleaning. Left\nuntreated it can progress to periodontitis and bone loss.\n\n## Prevention\n- Brush twice daily with fluoride toothpaste; clean between teeth daily.\n- Limit sugary and acidic drinks.\n- Dental check-up every 6–12 months.\n\n## When to see a dentist promptly\nPersistent toothache, facial swelling, a broken tooth, bleeding that doesn't\nsettle, or a mouth ulcer lasting more than two weeks.",
+    "source": "dental_care.md",
+    "title": "Dental Findings & Oral Care — Patient Guidance / إرشادات صحة الأسنان"
+  },
+  {
+    "text": "## بالعربية (ملخص)\nأشعة الأسنان والصور توضّح **التسوّس**، فقد العظم، و**التهاب اللثة**. التسوّس المبكر\nقد لا يسبّب ألمًا؛ ويُعالَج المبكر بالفلورايد والنظافة، أما التجويف فيحتاج حشوًا.\nالتهاب اللثة (لثة حمراء تنزف) قابل للعكس بالتنظيف الجيّد. الوقاية: تنظيف الأسنان\nمرتين يوميًا بمعجون فلورايد، وتقليل السكريات، وزيارة الطبيب كل 6–12 شهرًا. راجع\nطبيب الأسنان بسرعة عند ألم مستمر، تورّم بالوجه، أو قرحة تدوم أكثر من أسبوعين.\n\n> AI dental findings are a screening aid; a dentist must confirm and plan\n> treatment.",
+    "source": "dental_care.md",
+    "title": "Dental Findings & Oral Care — Patient Guidance / إرشادات صحة الأسنان"
+  },
+  {
+    "text": "# Prescription & Medication Safety — Patient Guidance / سلامة الأدوية والروشتات\n\n## Reading your prescription\nThe AI prescription parser extracts the drug name, strength, and dosage from a\nhandwritten or printed prescription to make it readable. Always confirm the\nresult against your doctor's or pharmacist's instructions — parsing assists, it\ndoes not replace professional verification.",
+    "source": "medication_safety.md",
+    "title": "Prescription & Medication Safety — Patient Guidance / سلامة الأدوية والروشتات"
+  },
+  {
+    "text": "## Taking medicines safely\n- **Follow the dose and schedule exactly.** Do not double a dose if you miss one\n  unless told to.\n- **Finish antibiotics** for the full course even if you feel better, to avoid\n  resistance.\n- **Do not share** prescription medicines with others.\n- **Check for interactions** — tell your doctor about every medicine, supplement,\n  and herbal product you take.\n- **Watch expiry dates** and store medicines as directed (some need refrigeration,\n  most need a cool, dry place away from children).\n\n## Common issues to report\nRash, swelling of the face or throat, difficulty breathing (possible allergy —\nstop and seek urgent care), severe stomach upset, or symptoms that do not\nimprove. Report side effects to your doctor.",
+    "source": "medication_safety.md",
+    "title": "Prescription & Medication Safety — Patient Guidance / سلامة الأدوية والروشتات"
+  },
+  {
+    "text": "## Antibiotic stewardship\nAntibiotics treat bacterial infections, not viral ones like the common cold.\nTaking them unnecessarily drives resistance. Only take antibiotics prescribed\nfor you, for the condition they were prescribed for.\n\n## بالعربية (ملخص)\nمحلّل الروشتة يستخرج اسم الدواء والجرعة لجعل الروشتة مقروءة، لكن لا يغني عن تأكيد\nالطبيب أو الصيدلي. التزم بالجرعة والمواعيد بدقّة، وأكمل كورس المضاد الحيوي كاملًا،\nولا تشارك أدويتك مع غيرك، وأبلغ طبيبك بكل ما تتناوله لتجنّب التعارض. أوقف الدواء\nواطلب رعاية عاجلة عند طفح جلدي أو تورّم بالوجه/الحلق أو صعوبة تنفّس (تحسّس محتمل).\nالمضادات الحيوية تعالج العدوى البكتيرية فقط وليست نزلات البرد الفيروسية.\n\n> Medication guidance here is general. Your prescribing doctor and pharmacist are\n> the authority on your specific treatment.",
+    "source": "medication_safety.md",
+    "title": "Prescription & Medication Safety — Patient Guidance / سلامة الأدوية والروشتات"
+  },
+  {
+    "text": "# When to Seek Urgent or Emergency Care / متى تطلب رعاية عاجلة أو طارئة\n\nSome symptoms need immediate medical attention regardless of any AI result.\n**If in doubt, treat it as an emergency and seek care.**\n\n## Call emergency services / go to the ER now for\n- Difficulty breathing or shortness of breath at rest\n- Chest pain or pressure, especially spreading to the arm, jaw, or back\n- Sudden weakness or numbness on one side, facial droop, or slurred speech\n  (possible stroke — act FAST)\n- Severe bleeding that will not stop\n- Blue lips or fingertips\n- Fainting, or a first-ever seizure\n- A severe allergic reaction: swelling of the face/throat, widespread hives,\n  trouble breathing after a medicine, food, or sting\n- Coughing up or vomiting blood\n- A high fever with a stiff neck, confusion, or a rash that does not fade\n- Severe, sudden headache unlike any before",
+    "source": "red_flags_urgent_care.md",
+    "title": "When to Seek Urgent or Emergency Care / متى تطلب رعاية عاجلة أو طارئة"
+  },
+  {
+    "text": "## Urgent (see a doctor the same day) for\n- A confirmed fracture or a wound that may need stitches\n- A fever above 39°C that will not come down, or fever in a very young infant\n- Persistent vomiting or signs of dehydration\n- A rapidly worsening infection (spreading redness, swelling, pus)\n\n## Important\nAn AI screening result — including a \"no findings\" result — never replaces\nprofessional judgment. If your symptoms are severe or worsening, seek care even\nif a scan looked normal.",
+    "source": "red_flags_urgent_care.md",
+    "title": "When to Seek Urgent or Emergency Care / متى تطلب رعاية عاجلة أو طارئة"
+  },
+  {
+    "text": "## بالعربية (ملخص)\nاطلب رعاية طارئة فورًا عند: صعوبة تنفّس، ألم بالصدر، ضعف مفاجئ بجانب واحد أو تلعثم\nبالكلام (احتمال جلطة), نزيف شديد, ازرقاق الشفاه, إغماء أو تشنّج, تحسّس شديد (تورّم\nالوجه/الحلق وصعوبة تنفّس), أو تقيّؤ دم. رعاية عاجلة في نفس اليوم عند: كسر مؤكّد,\nحرارة فوق 39 لا تنزل, تقيّؤ مستمر, أو عدوى تنتشر بسرعة. **نتيجة الذكاء الاصطناعي —\nحتى لو \"سليمة\" — لا تغني عن رأي الطبيب؛ لو الأعراض شديدة اطلب الرعاية فورًا.**",
+    "source": "red_flags_urgent_care.md",
+    "title": "When to Seek Urgent or Emergency Care / متى تطلب رعاية عاجلة أو طارئة"
+  }
+]

@@ -1,0 +1,46 @@
+# LiteLLM proxy — model-group fallback for the chatbot's LLM backend.
+#
+# Sits between chatbot-app and the upstream LLM gateway (llm.jetstream-cloud.org).
+# When the primary model group fails (the "Hosted_vllmException - Connection
+# error" seen when jetstream's vLLM backend is down), LiteLLM automatically
+# retries the request against a free, local Ollama model instead of surfacing
+# a 400 to the chatbot.
+#
+# Run with:  litellm --config llm-gateway/config.yaml --port 4000
+# chatbot-app then points at http://127.0.0.1:4000/ instead of jetstream directly
+# (see RUNS.md's "Local LLM Fallback" section — runs.sh does this automatically
+# when LOCAL_LLM_FALLBACK=1).
+
+model_list:
+  # Primary: the existing remote gateway, unchanged. Short timeout — when
+  # jetstream's vLLM backend is down it hangs rather than erroring fast, so we
+  # don't want to wait long before handing off to the fallback.
+  - model_name: gpt-oss-120b
+    litellm_params:
+      model: openai/gpt-oss-120b
+      api_base: https://llm.jetstream-cloud.org/api
+      api_key: os.environ/JETSTREAM_API_KEY
+      timeout: 10
+
+  # Fallback: free, local, CPU-only Qwen2.5 3B via Ollama. Good Arabic support,
+  # small enough to run without a GPU. See RUNS.md for setup (download + AMX fix).
+  # Longer timeout — a cold model load on CPU alone can take several seconds
+  # before the first token, on top of generation time.
+  - model_name: local-fallback
+    litellm_params:
+      model: ollama/qwen2.5:3b
+      api_base: http://127.0.0.1:11434
+      timeout: 45
+
+router_settings:
+  # Model-group fallback: gpt-oss-120b -> local-fallback (LiteLLM's officially
+  # supported mechanism — https://docs.litellm.ai/docs/proxy/reliability).
+  fallbacks:
+    - gpt-oss-120b: ["local-fallback"]
+  num_retries: 0            # fail over immediately — don't waste time retrying a hung upstream
+  timeout: 45                # router-level ceiling; per-model timeout above takes precedence per attempt
+  cooldown_time: 120         # seconds to skip a model after it fails (avoids re-trying a dead upstream every request)
+
+litellm_settings:
+  drop_params: true        # tolerate OpenAI params Ollama doesn't understand
+  set_verbose: false

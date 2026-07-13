@@ -63,9 +63,13 @@ data/*.db
 # Local backup artifacts
 *.bak
 
+# Local LLM fallback (portable Ollama install + downloaded model blobs, ~4GB)
+.local/
+
 # Legacy/Other
 /AV-Detection
 /Diffusion
 /OralXrays-9
 /annotations
 notes.txt
+llm-gateway/config.shared.yaml

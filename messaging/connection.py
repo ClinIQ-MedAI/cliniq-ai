@@ -3,7 +3,7 @@ Connection-string helpers.
 
 The .NET backend stores Redis credentials in StackExchange.Redis format, e.g.
 
-    causal-leopard-72320.upstash.io:6379,password=xxxx,ssl=true
+    your-instance.upstash.io:6379,password=xxxx,ssl=true
 
 This module turns that (or a standard redis:// / rediss:// URL) into the kwargs
 that redis-py expects, so the Python AI workers and the .NET backend can share a

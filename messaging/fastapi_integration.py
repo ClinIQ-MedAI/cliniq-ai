@@ -77,7 +77,7 @@ def _to_dict(result) -> Dict:
     return {"result": result}
 
 
-def _make_inference_fn(route: Callable, default_content_type: str):
+def _make_inference_fn(route: Callable, default_content_type: str, modality: str = ""):
     """Wrap an async ``predict_for_llm``-style route as a sync inference fn."""
     sig = inspect.signature(route)
     extra_params = [
@@ -95,11 +95,51 @@ def _make_inference_fn(route: Callable, default_content_type: str):
         return loop
 
     def inference_fn(image_bytes: bytes, options: Dict) -> Dict:
-        upload = _UploadShim(
-            image_bytes,
-            filename=options.get("filename", "upload.jpg"),
-            content_type=options.get("content_type", default_content_type),
-        )
+        filename = options.get("filename", "upload.jpg")
+        content_type = options.get("content_type", default_content_type)
+
+        # DICOM (.dcm) inputs are transcoded to a display-ready PNG here so the
+        # underlying service sees a normal image and needs no DICOM awareness.
+        # A DICOM we cannot decode raises DicomError -> the job fails with a
+        # clear reason rather than feeding garbage to the model.
+        dicom_meta: Dict = {}
+        try:
+            from imaging import normalize_medical_image
+            image_bytes, dicom_meta = normalize_medical_image(image_bytes, filename)
+        except ImportError:
+            pass  # imaging package unavailable — treat bytes as-is
+        if dicom_meta:
+            filename, content_type = "upload.png", "image/png"
+
+        # OOD / input gate — reject inputs that clearly aren't this modality
+        # (a selfie sent to the bone detector, a blank frame, ...) BEFORE we
+        # spend a model forward pass on them. Never let the gate crash a job.
+        gate = None
+        try:
+            import io as _io
+            from PIL import Image as _PILImage
+            from imaging import check_input
+            with _PILImage.open(_io.BytesIO(image_bytes)) as _im:
+                gate = check_input(_im, modality)
+        except ImportError:
+            pass
+        except Exception as gate_exc:  # noqa: BLE001 - bad image handled by the model
+            print(f"[worker:{modality}] input gate skipped: {gate_exc}")
+        if gate is not None and not gate.passed:
+            rejection = {
+                "modality": modality,
+                "input_rejected": True,
+                "input_gate": gate.to_dict(),
+                "urgency": "REJECTED",
+                "detections": [],
+                "summary": f"Input rejected by quality gate: {gate.reason}",
+                "recommendations": [f"Please upload a valid {modality.replace('_', ' ')} image."],
+            }
+            if dicom_meta:
+                rejection["dicom"] = dicom_meta
+            return rejection
+
+        upload = _UploadShim(image_bytes, filename=filename, content_type=content_type)
         kwargs = {}
         for param in extra_params:
             if param.name in options:
@@ -112,7 +152,13 @@ def _make_inference_fn(route: Callable, default_content_type: str):
         result = route(upload, **kwargs)
         if inspect.isawaitable(result):
             result = _loop().run_until_complete(result)
-        return _to_dict(result)
+        result = _to_dict(result)
+        # Surface the gate verdict + DICOM header for the audit trail / backend.
+        if gate is not None:
+            result.setdefault("input_gate", gate.to_dict())
+        if dicom_meta:
+            result.setdefault("dicom", dicom_meta)
+        return result
 
     return inference_fn
 
@@ -143,7 +189,7 @@ def attach_worker(
         # Messaging disabled — keep the service purely synchronous.
         return None
 
-    inference_fn = _make_inference_fn(route, default_content_type)
+    inference_fn = _make_inference_fn(route, default_content_type, modality)
     state: Dict[str, Optional[JobWorker]] = {"worker": None}
 
     # Fingerprint this service's checkpoint once, for prediction traceability.

@@ -62,6 +62,14 @@ class QueueConfig:
     def consumer_name(self, modality: str) -> str:
         return f"{self.consumer_id}:{modality}"
 
+    def chat_requests_channel(self) -> str:
+        """Where the backend posts chat turns, e.g. ``cliniq:chat:requests``."""
+        return f"{self.prefix}:chat:requests"
+
+    def chat_results_channel(self) -> str:
+        """Where the chat bridge posts replies, e.g. ``cliniq:chat:results``."""
+        return f"{self.prefix}:chat:results"
+
 
 def load_config() -> QueueConfig:
     backend = (_env("QUEUE_BACKEND", "none") or "none").lower()

@@ -31,19 +31,29 @@ from messaging.factory import get_broker
 from audit.store import AuditStore
 from triage.store import TriageStore
 from triage.consumer import ResultConsumer
+from triage.alerts import AlertStore, CriticalNotifier
 
 app = FastAPI(title="ClinIQ Triage Worklist", version="1.0.0")
+
+# Unified request/response logging -> stdout -> SLURM log
+try:
+    from messaging.http_logging import install_request_logging
+    install_request_logging(app, "triage")
+except Exception as _log_exc:  # noqa: BLE001
+    print(f"[triage] request logging not installed: {_log_exc}")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
 
 audit_store = AuditStore()
 triage_store = TriageStore()
+alert_store = AlertStore()
+notifier = CriticalNotifier(alert_store)   # webhook via ALERT_WEBHOOK_URL env
 _state = {"consumer": None}
 
 _LEVEL_COLOR = {
     "CRITICAL": "#e74c3c", "HIGH": "#e67e22", "MEDIUM": "#f1c40f",
-    "LOW": "#3498db", "INFO": "#95a5a6",
+    "LOW": "#3498db", "INFO": "#95a5a6", "REJECTED": "#6b7280",
 }
 
 
@@ -61,9 +71,15 @@ async def _start_consumer():
     except Exception as exc:  # noqa: BLE001
         print(f"[triage] queue unavailable: {exc}")
         return
-    consumer = ResultConsumer(broker, cfg, audit_store, triage_store)
+    consumer = ResultConsumer(
+        broker, cfg, audit_store, triage_store, on_critical=notifier.notify
+    )
     consumer.start_background()
     _state["consumer"] = consumer
+    if notifier.webhook_url:
+        print(f"[triage] critical alerts -> webhook {notifier.webhook_url}")
+    else:
+        print("[triage] critical alerts -> store + console (set ALERT_WEBHOOK_URL for webhook)")
 
 
 @app.on_event("shutdown")
@@ -92,6 +108,21 @@ async def ack(job_id: str):
     return {"acknowledged": job_id}
 
 
+@app.get("/alerts")
+async def alerts(limit: int = 50):
+    return {
+        "unacknowledged": alert_store.unacknowledged_count(),
+        "alerts": alert_store.recent(limit),
+    }
+
+
+@app.post("/alerts/{alert_id}/ack")
+async def ack_alert(alert_id: int):
+    if not alert_store.acknowledge(alert_id):
+        raise HTTPException(status_code=404, detail="alert not found")
+    return {"acknowledged": alert_id}
+
+
 @app.get("/audit/recent")
 async def audit_recent(limit: int = 50):
     return {"entries": audit_store.recent(limit)}
@@ -107,6 +138,25 @@ async def dashboard():
     counts = triage_store.counts()
     cases = triage_store.worklist(100)
     stats = audit_store.stats()
+    recent_alerts = alert_store.recent(8)
+    pending_alerts = alert_store.unacknowledged_count()
+
+    # Prominent banner + feed for critical alerts.
+    alert_banner = ""
+    if pending_alerts:
+        alert_banner = (
+            f'<div class="alertbanner">🚨 {pending_alerts} unacknowledged '
+            f'CRITICAL alert{"s" if pending_alerts != 1 else ""} — review immediately</div>'
+        )
+    alert_rows = "".join(
+        f"""<tr>
+          <td>🚨</td><td>{a.get('modality') or '—'}</td>
+          <td>{a.get('top_finding') or '—'}</td>
+          <td>{a.get('patient_id') or '—'}</td>
+          <td><code>{a.get('delivery') or '—'}</code></td>
+          <td class="sub">{(a.get('created_at') or '')[:19].replace('T',' ')}</td>
+        </tr>""" for a in recent_alerts
+    )
 
     rows = ""
     for c in cases:
@@ -150,17 +200,25 @@ async def dashboard():
   button:hover {{ background:#3a516b; }}
   .panel {{ padding:12px 24px; color:#8aa; font-size:13px; }} code {{ color:#7fd; }}
   ul {{ margin:6px 0; }}
+  .alertbanner {{ background:#e74c3c; color:#fff; font-weight:700; padding:12px 24px;
+    font-size:15px; animation: pulse 1.6s ease-in-out infinite; }}
+  @keyframes pulse {{ 0%,100% {{ opacity:1; }} 50% {{ opacity:.72; }} }}
+  .section {{ padding:6px 24px 2px; color:#8aa; font-size:11px; text-transform:uppercase; letter-spacing:.5px; }}
 </style></head><body>
 <header>
   <h1>🏥 ClinIQ Triage Worklist</h1>
   <div class="sub">Severity-ranked review queue · auto-refresh 5s · {counts.get('pending',0)} pending</div>
 </header>
+{alert_banner}
 <div class="bar">{chips or '<span class="sub">No cases yet — waiting for results…</span>'}</div>
 <table>
   <thead><tr><th>Priority</th><th>Score</th><th>Modality</th><th>Top finding</th>
   <th>Conf</th><th>Patient</th><th>Status</th><th></th></tr></thead>
   <tbody>{rows}</tbody>
 </table>
+{f'''<div class="section">🚨 Recent critical alerts</div>
+<table><thead><tr><th></th><th>Modality</th><th>Finding</th><th>Patient</th>
+<th>Delivery</th><th>Time</th></tr></thead><tbody>{alert_rows}</tbody></table>''' if alert_rows else ''}
 <div class="panel">
   <b>Audit:</b> {stats['total_predictions']} predictions logged ·
   avg {stats.get('avg_duration_ms') or 0} ms · by status {stats['by_status']}

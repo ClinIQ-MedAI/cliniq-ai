@@ -553,6 +553,13 @@ from pathlib import Path as _Path
 _CLINIQ_ROOT = _Path(__file__).resolve().parents[2]
 if str(_CLINIQ_ROOT) not in _sys.path:
     _sys.path.insert(0, str(_CLINIQ_ROOT))
+
+# Unified request/response logging -> stdout -> SLURM log
+try:
+    from messaging.http_logging import install_request_logging
+    install_request_logging(app, "bone-detect")
+except Exception as _log_exc:  # noqa: BLE001 - logging must never crash a service
+    print(f"[bone-detect] request logging not installed: {_log_exc}")
 try:
     from messaging.fastapi_integration import attach_worker
 
