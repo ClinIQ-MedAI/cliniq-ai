@@ -1,0 +1,8 @@
+flask==3.0.0
+requests==2.31.0
+werkzeug==3.0.0
+python-dotenv==1.0.0
+
+# litellm[proxy] pulls uvloop; <0.22 has no Python 3.14 support and
+# crashes the proxy at boot with ImportError on BaseDefaultEventLoopPolicy.
+uvloop>=0.22.1
