@@ -1,0 +1,76 @@
+# =====================================================
+# Dataset files - NEVER commit patient data
+# =====================================================
+dataset/
+dataset_clean/
+*.zip
+*.tar
+*.tar.gz
+
+# =====================================================
+# Model outputs and weights (too large for GitHub)
+# =====================================================
+outputs/weights/
+SOTA_FINAL_*/
+WORLD_RECORD_*/
+best_/
+outputs_convnext/
+*.pth
+*.onnx
+*.pt
+*.pkl
+*.h5
+*.weights
+
+# Keep outputs README for download instructions
+!outputs/README.md
+
+# =====================================================
+# Training artifacts
+# =====================================================
+training_history.csv
+*.png
+!README.md
+
+# =====================================================
+# Python
+# =====================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+
+# =====================================================
+# IDE and editors
+# =====================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# =====================================================
+# OS files
+# =====================================================
+.DS_Store
+Thumbs.db
+
+# =====================================================
+# Environment
+# =====================================================
+.env
+.venv/
+venv/
+*.log
+
+# =====================================================
+# Deprecated/legacy folders
+# =====================================================
+XAI_Complete_Train_Test/
+textvision_scripts/
