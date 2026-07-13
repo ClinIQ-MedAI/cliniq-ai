@@ -1,0 +1,7 @@
+data:
+  yolo_root: Oral-Dental/oral-xray/dataset/processed/yolo_oral
+  use_balanced: true
+  alpha: 0.5
+  max_mult: 3
+train:
+  cache: ram
