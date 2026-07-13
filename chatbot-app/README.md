@@ -196,3 +196,23 @@ The chatbot gracefully handles:
 ## License
 
 Proprietary - All rights reserved.
+
+## Input Gate (OOD screening)
+
+Before any model runs, every upload passes through a training-free screen
+(`imaging/gate.py`) that rejects obviously-wrong inputs, so a colour selfie sent
+as a bone X-ray is refused with a reason instead of being confidently scored.
+
+It is deliberately conservative (only rejects when confident) and checks:
+
+- **Grayscale-ness** — X-ray modalities (bone, chest, dental X-ray) are near
+  grayscale; a saturated colour photo almost certainly is not an X-ray
+  (`>15%` coloured pixels on an X-ray => reject).
+- **Degeneracy** — blank / near-constant frames (intensity std `< 3`), extreme
+  aspect ratios (`> 5:1`, banner/screenshot-like), or images too small to carry
+  diagnostic information.
+
+A rejected upload returns `200` with `input_rejected: true` and a human-readable
+reason; there is no `report` field. The gate is wired in
+`core/medical.py:_screen_upload()` and called at the top of `/api/upload`.
+
