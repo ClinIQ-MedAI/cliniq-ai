@@ -1,0 +1,30 @@
+# GrazPedWri-DX Dataset - YOLO Format
+# Pediatric Wrist Trauma Detection
+
+# IMPORTANT: Update this path after running preprocess.py
+path: /home/moabouag/far/cliniq/Bone-Xray/bone-detect/dataset
+train: train/images
+val: val/images
+
+# Classes (8 total - 'text' class removed)
+names:
+  0: boneanomaly
+  1: bonelesion
+  2: foreignbody
+  3: fracture
+  4: metal
+  5: periostealreaction
+  6: pronatorsign
+  7: softtissue
+
+nc: 8
+
+# Class descriptions:
+# 0. boneanomaly       - General bone abnormality (276 boxes in original)
+# 1. bonelesion        - Bone lesions (45 boxes - very rare)
+# 2. foreignbody       - Foreign objects (8 boxes - extremely rare)
+# 3. fracture          - Bone fractures (18,090 boxes - primary target)
+# 4. metal             - Surgical hardware (818 boxes)
+# 5. periostealreaction - Bone healing indicator (3,453 boxes)
+# 6. pronatorsign      - Fat pad displacement (567 boxes)
+# 7. softtissue        - Soft tissue abnormality (464 boxes)
