@@ -1,0 +1,14 @@
+# Extra deps for prescription-parser service
+# (vLLM + transformers + AWQ stack assumed already in the cliniq env)
+vllm>=0.6.3
+transformers>=4.45.0
+accelerate>=0.34.0
+autoawq>=0.2.6
+torch>=2.4.0
+Pillow>=10.0.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+kagglehub>=0.3.0
+pandas>=2.0.0
+rapidfuzz>=3.9.0
