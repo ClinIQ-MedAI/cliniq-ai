@@ -1,0 +1,6 @@
+# Triage worklist service dependencies.
+#   pip install -r triage/requirements.txt
+fastapi>=0.110
+uvicorn>=0.29
+redis>=5.0        # to consume the cliniq:results stream
+# audit + worklist storage uses the Python stdlib sqlite3 — no extra dep.
